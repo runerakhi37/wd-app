@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Wardrobe App</title>
+  <meta name="theme-color" content="#0d0b09">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Base Light Theme (V2) */
+      --bg: #faeed9;
+      --surface: rgba(255,255,255,0.3);
+      --surface-hover: rgba(255,255,255,0.5);
+      --border: rgba(255,255,255,0.6);
+      --border-gold: rgba(255,255,255,0.8);
+      --text: #2d1709;
+      --text-muted: #5e412f;
+      --text-light: #432b1d;
+      --text-dim: #7a5d48;
+      --gold: #bd6a3f;
+      --gold-bg: rgba(255,255,255,0.7);
+      --gold-bg-active: rgba(255,255,255,0.9);
+      --gold-border: rgba(255,255,255,0.9);
+      --gold-border-subtle: rgba(255,255,255,0.5);
+      --success: #3c7d3d;
+      --success-bg: rgba(255,255,255,0.8);
+      --success-border: rgba(255,255,255,0.9);
+      --danger: #cf4f4f;
+      --danger-bg: rgba(255,255,255,0.8);
+      --danger-border: rgba(255,255,255,0.9);
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      --bg-gradient: linear-gradient(135deg, #faefde 0%, #fad1a1 40%, #e18c64 100%);
+      --card-bg: rgba(255, 255, 255, 0.4);
+      --card-border: rgba(255, 255, 255, 0.9);
+      --bottom-nav-bg: rgba(255,246,233,0.85);
+      --bottom-nav-border: rgba(255,255,255,0.6);
+      --nav-icon-inactive: #8e7a6d;
+      --nav-icon-active: var(--text);
+      --status-online-bg: #fcf1e5;
+      --status-online-border: #fff;
+    }
+
+    [data-theme="dark"] {
+      /* Base Dark Theme (V1) */
+      --bg: #0d0b09;
+      --surface: rgba(255,255,255,0.03);
+      --surface-hover: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.07);
+      --border-gold: rgba(201,151,58,0.18);
+      --text: #f0ebe4;
+      --text-muted: #555;
+      --text-light: #d4cfc8;
+      --text-dim: #444;
+      --gold: #c9973a;
+      --gold-bg: rgba(201,151,58,0.07);
+      --gold-bg-active: rgba(201,151,58,0.1);
+      --gold-border: rgba(201,151,58,0.35);
+      --gold-border-subtle: rgba(201,151,58,0.2);
+      --success: #4ade80;
+      --success-bg: rgba(74,222,128,0.08);
+      --success-border: rgba(74,222,128,0.25);
+      --danger: #f87171;
+      --danger-bg: rgba(248,113,113,0.08);
+      --danger-border: rgba(248,113,113,0.25);
+      
+      --bg-gradient: radial-gradient(ellipse at 30% 20%, #1a1208 0%, #0a0908 60%);
+      --card-bg: rgba(255, 255, 255, 0.02);
+      --card-border: rgba(255, 255, 255, 0.05);
+      --bottom-nav-bg: rgba(13,11,9,0.97);
+      --bottom-nav-border: rgba(201,151,58,0.08);
+      --nav-icon-inactive: #3a3a3a;
+      --nav-icon-active: var(--gold);
+      --status-online-bg: var(--success-bg);
+      --status-online-border: var(--success-border);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0; padding: 0;
+      background: var(--bg-gradient);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-weight: 400;
+      width: 100%; height: 100dvh;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    /* Connectivity Pill */
+    #status-pill {
+      position: fixed; top: max(env(safe-area-inset-top, 10px), 24px);
+      right: 24px;
+      padding: 6px 14px; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+      z-index: 1000; transition: all 0.3s; cursor: default;
+    }
+    #status-pill.online { background: var(--status-online-bg); border: 1px solid var(--status-online-border); }
+    #status-pill.offline { background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .dot.online { background: var(--success); }
+    .dot.offline { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+    #status-text.online { color: var(--success); }
+    #status-text.offline { color: var(--danger); }
+
+    /* Tabs Layout */
+    .tab-content {
+      flex: 1; padding: max(env(safe-area-inset-top, 20px) + 30px, 50px) 18px 110px;
+      overflow-y: auto; display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .tab-content.active { display: block; }
+    .tab-content::-webkit-scrollbar { display: none; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Typography */
+    .section-label {
+      font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; font-weight: 600;
+      text-transform: uppercase; margin-bottom: 8px; font-family: var(--font-sans);
+    }
+    h1 {
+      font-size: 64px; font-family: var(--font-serif); font-weight: 400;
+      color: var(--text); margin: 0 0 12px; line-height: 0.95; letter-spacing: -0.02em;
+    }
+    h2 {
+      font-size: 26px; font-family: var(--font-serif); font-weight: 400;
+      color: var(--text); margin: 0 0 20px; line-height: 1.2;
+    }
+    p.subtitle { color: var(--text-light); font-size: 16px; margin: 0 0 24px; line-height: 1.5; font-family: var(--font-sans); font-weight: 300; }
+
+    /* Weather Pill */
+    #weather-container {
+      display: none; /* Replaced by beautiful subtitle in V2 */
+    }
+
+    /* Hourly Weather */
+    #hourly-weather { 
+      display: none;
+    }
+
+    /* V2 Card Container */
+    .preference-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 28px; padding: 24px 20px;
+      margin-top: 24px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.03);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%; padding: 18px 22px; margin-bottom: 12px;
+      background: rgba(255,255,255,0.3); color: var(--text);
+      border: 1px solid rgba(255,255,255,0.7); border-radius: 18px;
+      font-size: 16px; font-family: var(--font-sans); font-weight: 500;
+      text-align: left; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      transition: all 0.2s ease;
+    }
+    .btn:active, .btn.selected { 
+      background: rgba(255,255,255,0.9); 
+      border-color: #fff; 
+    }
+    .btn-primary {
+      background: var(--text); color: #fff;
+      text-align: center; justify-content: center;
+      font-weight: 600; font-family: var(--font-sans); font-size: 15px;
+      border: none; border-radius: 18px; margin-top: 8px;
+      padding: 16px;
+    }
+    .btn-primary:active { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+    /* Question Groups */
+    .question-group { display: none; animation: slideUp 0.25s ease-out; }
+    .question-group.active { display: block; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Progress Bar */
+    .progress-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+    .progress-segment { flex: 1; height: 2px; border-radius: 1px; background: rgba(255,255,255,0.1); transition: background 0.3s; }
+    .progress-segment.active { background: var(--gold); }
+
+    /* Bottom Nav Bar */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bottom-nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--bottom-nav-border);
+      display: flex; justify-content: space-around;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+      z-index: 100;
+    }
+    .nav-item {
+      background: none; border: none; color: var(--nav-icon-inactive);
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: 9px; font-weight: 600; cursor: pointer;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      min-width: 60px; transition: color 0.15s;
+    }
+    .nav-item.active { color: var(--nav-icon-active); }
+    .nav-icon { font-size: 16px; opacity: 1; }
+    
+    /* Loading States */
+    #loading-state { text-align: center; padding-top: 50px; display: none; }
+    .spinner-icon { font-size: 28px; margin-bottom: 14px; opacity: 0.5; }
+
+    /* Back Link */
+    .back-link { 
+      text-align: center; margin-top: 14px; font-size: 11px; 
+      color: var(--text-dim); cursor: pointer; 
+    }
+
+    /* Formality Dots */
+    .formality-dots { display: flex; gap: 3px; }
+    .formality-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+    .formality-dot.filled { background: var(--gold); }
+
+    /* Pill Buttons */
+    .pill-btn {
+      font-size: 10px; color: var(--text-muted); cursor: pointer; padding: 4px 10px;
+      border-radius: 20px; border: 1px solid var(--border);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      background: none; font-family: var(--font-sans);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Connectivity Pill -->
+  <div id="status-pill" class="online">
+    <div class="dot online" id="status-dot"></div>
+    <span id="status-text" class="online">Online</span>
+  </div>
+
+  <!-- Today Tab -->
+  <div id="tab-today" class="tab-content active">
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+      <div class="section-label" id="date-label" style="font-size: 13px; letter-spacing: 0.15em; color: #614636; font-weight: 700; margin: 0;"></div>
+      <button style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; opacity: 0.5; mix-blend-mode: multiply;" onclick="openSettings()">⚙️</button>
+    </div>
+
+    <h1 id="v2-greeting" style="color: var(--text);">Good<br>morning.</h1>
+    <p class="subtitle" id="v2-weather-subtitle" style="color: #614636;">Checking weather in your city...</p>
+
+    <!-- Hourly Weather -->
+    <div id="weather-container" style="display:none;"></div>
+    <div id="hourly-weather"></div>
+
+    <!-- Pre-generation Preferences Screen -->
+    <div id="preference-screen" class="preference-card">
+      <div class="section-label">First things first</div>
+
+      <div id="q-legs" class="question-group active">
+        <h2>Shorts, or trousers?</h2>
+        <button class="btn" onclick="answerPref('legs', 'shorts', this)">Shorts today <span></span></button>
+        <button class="btn" onclick="answerPref('legs', 'trousers', this)">Something longer <span></span></button>
+        <button class="btn" onclick="answerPref('legs', 'any', this)">You choose <span></span></button>
+      </div>
+
+      <div id="q-layering" class="question-group">
+        <h2>Need a jacket?</h2>
+        <button class="btn" onclick="answerPref('layering', 'layer', this)">Something on top <span></span></button>
+        <button class="btn" onclick="answerPref('layering', 'top', this)">Just a top <span></span></button>
+        <button class="btn" onclick="answerPref('layering', 'any', this)">No preference <span></span></button>
+        <div class="back-link" onclick="goBackPref('q-legs')">← Back</div>
+      </div>
+
+      <div id="q-dress" class="question-group">
+        <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;">Question 3 of 4</div>
+        <h2>How do you want to dress?</h2>
+        <button class="btn" onclick="answerPref('dress', 1)">Comfy & Sporty</button>
+        <button class="btn" onclick="answerPref('dress', 2)">Streetwear</button>
+        <button class="btn" onclick="answerPref('dress', 3)">Smart Casual</button>
+        <button class="btn" onclick="answerPref('dress', 4)">Formal</button>
+        <div class="back-link" onclick="goBackPref('q-layering')">← Back</div>
+      </div>
+
+      <div id="q-cap" class="question-group">
+        <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;">Question 4 of 4</div>
+        <h2>Cap today?</h2>
+        <button class="btn" onclick="answerPref('cap', 'yes')">Yes</button>
+        <button class="btn" onclick="answerPref('cap', 'no')">No</button>
+        <button class="btn" onclick="answerPref('cap', 'any')">No preference</button>
+        <div class="back-link" onclick="goBackPref('q-dress')">← Back</div>
+      </div>
+
+      <!-- Offline Only Weather Questions -->
+      <div id="q-offline-weather" class="question-group">
+        <h2>What's it like outside?</h2>
+        <button class="btn" onclick="answerOfflineWeather(10)">Cold (Under 12°C)</button>
+        <button class="btn" onclick="answerOfflineWeather(15)">Cool (12–18°C)</button>
+        <button class="btn" onclick="answerOfflineWeather(21)">Warm (18–24°C)</button>
+        <button class="btn" onclick="answerOfflineWeather(28)">Hot (Over 24°C)</button>
+        
+        <div style="font-size: 11px; color: var(--text-muted); margin: 16px 0 10px; text-transform: uppercase; letter-spacing: 0.08em;">Raining?</div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" style="flex: 1; text-align: center; justify-content: center;" onclick="appPrefs.rain = true; proceedToGenerate();">Yes</button>
+          <button class="btn" style="flex: 1; text-align: center; justify-content: center;" onclick="appPrefs.rain = false; proceedToGenerate();">No</button>
+        </div>
+        <div class="back-link" onclick="goBackPref('q-cap')">← Back</div>
+      </div>
+    </div>
+
+    <!-- Generating State -->
+    <div id="loading-state">
+      <div class="spinner-icon">✦</div>
+      <div style="color: var(--text-muted); font-size: 13px; letter-spacing: 0.04em;" id="loading-text">Asking Gemini...</div>
+      <div style="color: var(--text-dim); font-size: 11px; margin-top: 5px;">Checking your wardrobe & history</div>
+    </div>
+
+    <!-- Outfit Screen -->
+    <div id="outfits-screen" style="display: none; padding-bottom: 40px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em;" id="outfits-subtitle">3 options</div>
+        <button class="pill-btn" onclick="triggerRegenerate()">↺ Regenerate</button>
+      </div>
+      
+      <div id="outfits-container"></div>
+      
+      <div id="cap-toggle-container" style="display: none; justify-content: center; margin: 12px 0 8px;">
+          <button id="cap-toggle-btn" class="pill-btn" onclick="toggleCapVariants()">Toggle caps</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding: 0 4px;">
+        <div style="font-size: 12px; color: var(--text-dim); cursor: pointer;" onclick="triggerRegenerate()">None of these →</div>
+        <div style="font-size: 11px; color: #333; cursor: pointer;" onclick="resetFlow()">Start over</div>
+      </div>
+
+      <button id="confirm-outfit-btn" class="btn-primary" disabled onclick="logOutfit()" style="width: 100%; margin-top: 16px;">Confirm & Log Outfit</button>
+    </div>
+
+    <!-- Confirmed State -->
+    <div id="confirmed-state" style="display: none; text-align: center; padding: 40px 0; background: rgba(201,151,58,0.05); border-radius: 18px; border: 1px solid rgba(201,151,58,0.15);">
+      <div style="font-size: 32px; margin-bottom: 10px; color: var(--gold);">✓</div>
+      <div style="color: var(--text); font-size: 22px; font-family: var(--font-serif);">Outfit logged</div>
+      <div style="color: var(--text-muted); font-size: 11px; margin-top: 6px;">See you tomorrow.</div>
+      <div style="margin-top: 20px; font-size: 11px; color: var(--text-dim); cursor: pointer;" onclick="resetFlow()">Start over</div>
+    </div>
+
+  </div>
+
+  <div id="tab-wardrobe" class="tab-content">
+    <div style="padding: 16px 16px 0 16px; position: sticky; top: 0; background: var(--bg); z-index: 10; margin-bottom: 12px;">
+      <input type="text" id="wardrobe-search" placeholder="Search by name, color, or style..." style="width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 14px; outline: none; box-sizing: border-box;" oninput="renderWardrobeItems()">
+    </div>
+    <div id="wardrobe-items-container"></div>
+  </div>
+  <div id="tab-laundry" class="tab-content"></div>
+  <div id="tab-history" class="tab-content"></div>
+  <div id="tab-stats" class="tab-content"></div>
+
+  <!-- Photo Flow Modal -->
+  <div id="photo-modal" style="display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; padding: max(env(safe-area-inset-top, 20px), 20px) 18px; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">Item Detail</h2>
+      <button class="pill-btn" onclick="closePhotoFlow()">Close</button>
+    </div>
+    <div id="photo-flow-content" style="text-align: center;"></div>
+  </div>
+
+  <!-- Add/Edit Item Modal -->
+  <div id="add-item-modal" style="display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; padding: max(env(safe-area-inset-top, 20px), 20px) 18px; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 id="add-modal-title" style="margin: 0;">Add Clothing</h2>
+      <button class="pill-btn" onclick="document.getElementById('add-item-modal').style.display='none'">Close</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <div class="section-label" style="margin-bottom: 6px;">Name</div>
+        <input id="add-name" type="text" placeholder="e.g. White Zara Linen Shirt" style="width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 14px; outline: none; box-sizing: border-box;">
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom: 6px;">Category</div>
+        <select id="add-category" style="width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 14px; outline: none; -webkit-appearance: none; box-sizing: border-box;">
+          <option value="tshirt">T-Shirt</option>
+          <option value="longsleeve">Long Sleeve</option>
+          <option value="shirt">Shirt</option>
+          <option value="polo">Polo</option>
+          <option value="hoodie">Hoodie</option>
+          <option value="sweater">Sweater</option>
+          <option value="bottom">Bottoms / Shorts</option>
+          <option value="outer">Outerwear / Jacket</option>
+          <option value="suit">Suit</option>
+          <option value="shoes">Shoes</option>
+          <option value="cap">Cap</option>
+        </select>
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom: 6px;">Color</div>
+        <select id="add-color" style="width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 14px; outline: none; -webkit-appearance: none; box-sizing: border-box;">
+          <option value="white">White</option>
+          <option value="black">Black</option>
+          <option value="grey">Grey</option>
+          <option value="beige">Beige</option>
+          <option value="brown">Brown</option>
+          <option value="dark brown">Dark Brown</option>
+          <option value="blue">Blue</option>
+          <option value="light blue">Light Blue</option>
+          <option value="navy">Navy</option>
+          <option value="green">Green</option>
+          <option value="dark green">Dark Green</option>
+          <option value="olive">Olive</option>
+          <option value="red">Red</option>
+          <option value="dark red">Dark Red (Burgundy/Wine)</option>
+          <option value="yellow">Yellow</option>
+          <option value="orange">Orange</option>
+          <option value="purple">Purple</option>
+          <option value="pink">Pink</option>
+          <option value="mixed">Mixed / Pattern</option>
+        </select>
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom: 6px;">Formality (select all that apply)</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="1" class="add-formality-cb"> 1 Sporty
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="2" class="add-formality-cb"> 2 Street
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="3" class="add-formality-cb"> 3 Smart
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="4" class="add-formality-cb"> 4 Formal
+          </label>
+        </div>
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom: 6px;">Style Tags (select all that apply)</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="sporty" class="add-style-cb"> Sporty
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="street" class="add-style-cb"> Street
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="casual" class="add-style-cb"> Casual
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="smart" class="add-style-cb"> Smart
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-size: 13px; color: var(--text-light);">
+            <input type="checkbox" value="formal" class="add-style-cb"> Formal
+          </label>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div class="section-label" style="margin: 0;">Temperature Range (°C)</div>
+          <div style="display: flex; gap: 4px;">
+            <button type="button" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 4px 8px; border-radius: 8px; font-size: 10px; cursor: pointer;" onclick="document.getElementById('add-temp-min').value=-10; document.getElementById('add-temp-max').value=15;">Winter</button>
+            <button type="button" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 4px 8px; border-radius: 8px; font-size: 10px; cursor: pointer;" onclick="document.getElementById('add-temp-min').value=5; document.getElementById('add-temp-max').value=25;">All-Season</button>
+            <button type="button" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 4px 8px; border-radius: 8px; font-size: 10px; cursor: pointer;" onclick="document.getElementById('add-temp-min').value=15; document.getElementById('add-temp-max').value=45;">Summer</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <div style="flex: 1;">
+            <label style="font-size: 11px; color: var(--text-muted);">Min</label>
+            <input id="add-temp-min" type="number" value="10" style="width: 100%; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 14px; outline: none; box-sizing: border-box;">
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 11px; color: var(--text-muted);">Max</label>
+            <input id="add-temp-max" type="number" value="30" style="width: 100%; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 14px; outline: none; box-sizing: border-box;">
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveNewItem()" style="width: 100%; padding: 14px; border-radius: 14px; margin-top: 8px;">Save to Wardrobe</button>
+      <button id="delete-item-btn" class="btn" style="width: 100%; padding: 14px; border-radius: 14px; margin-top: 4px; color: var(--danger); border-color: var(--danger-border); display: none;" onclick="deleteEditingItem()">Delete Item</button>
+    </div>
+  </div>
+
+  <!-- Manual Log Modal -->
+  <div id="manual-log-modal" style="display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; padding: max(env(safe-area-inset-top, 20px), 20px) 18px; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2 style="margin: 0;">Log Past Outfit</h2>
+      <button class="pill-btn" onclick="document.getElementById('manual-log-modal').style.display='none'">Close</button>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <div class="section-label" style="margin-bottom: 6px;">When did you wear this?</div>
+      <select id="manual-log-date" style="width: 100%; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 14px; outline: none; -webkit-appearance: none; appearance: none; box-sizing: border-box;">
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+      </select>
+    </div>
+    <div class="section-label" style="margin-bottom: 6px;">Tap the items you wore</div>
+    <div id="manual-log-items" style="max-height: 55vh; overflow-y: auto; padding-bottom: 10px;"></div>
+    <button class="btn-primary" onclick="saveManualLog()" style="width: 100%; padding: 14px; border-radius: 14px; margin-top: 12px;">Log Outfit</button>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" style="display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; padding: max(env(safe-area-inset-top, 20px), 20px) 18px; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">Settings</h2>
+      <button class="btn-primary" style="width: auto; padding: 8px 16px; margin: 0; font-size: 11px;" onclick="saveSettings()">Save</button>
+    </div>
+    <label style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">App Theme</label>
+    <select id="set-theme" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 16px; font-family: var(--font-sans); font-size: 14px; outline: none; -webkit-appearance: none;">
+      <option value="light">Light Mode (Peach)</option>
+      <option value="dark">Dark Mode (Midnight)</option>
+    </select>
+    
+    <label style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">City Name</label>
+    <input type="text" id="set-city" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 16px; font-family: var(--font-sans); font-size: 14px;">
+    
+    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+       <div style="flex: 1;">
+         <label style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">Latitude</label>
+         <input type="number" id="set-lat" step="any" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-sans); font-size: 14px;">
+       </div>
+       <div style="flex: 1;">
+         <label style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">Longitude</label>
+         <input type="number" id="set-lon" step="any" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-sans); font-size: 14px;">
+       </div>
+    </div>
+
+    <label style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">Gemini API Key</label>
+    <input type="password" id="set-key" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 16px; font-family: var(--font-sans); font-size: 14px;">
+
+    <label style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">Wear Cooldown: <span id="set-cooldown-val"></span> days</label>
+    <input type="range" id="set-cooldown" min="0" max="7" style="width: 100%; margin-bottom: 32px; accent-color: var(--gold);" oninput="document.getElementById('set-cooldown-val').innerText = this.value;">
+
+    <button class="btn" style="text-align: center; justify-content: center;" onclick="exportJSON('wardrobe_data')">Export Wardrobe JSON</button>
+    <button class="btn" style="text-align: center; justify-content: center; margin-top: 8px;" onclick="exportJSON('wardrobe_history')">Export History JSON</button>
+    <label class="btn" style="text-align: center; justify-content: center; margin-top: 8px; cursor: pointer;">Import JSON Backup<input type="file" accept=".json" style="display: none;" onchange="importJSONBackup(event)"></label>
+    
+    <button class="btn" style="color: var(--danger); border-color: var(--danger-border); margin-top: 20px; text-align: center; justify-content: center;" onclick="clearHistory()">Clear History</button>
+    <button class="btn" style="background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); margin-top: 8px; text-align: center; justify-content: center;" onclick="resetApp()">Reset Entire App</button>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('today')">
+      <div class="nav-icon">✦</div><span>Today</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('wardrobe')">
+      <div class="nav-icon">◻</div><span>Wardrobe</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('laundry')">
+      <div class="nav-icon">◌</div><span>Laundry</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('history')">
+      <div class="nav-icon">◷</div><span>History</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('stats')">
+      <div class="nav-icon">◈</div><span>Stats</span>
+    </button>
+  </nav>
+
+  <script>
+    // ==========================================
+    // 1. DATA STRUCTURES & WARDROBE
+    // ==========================================
+    const defaultWardrobe = [
+      // Pants & Shorts ('bottom')
+      { id: 'nike_grey_sweatpants', name: 'Nike grey sweatpants sporty', category: 'bottom', color_family: 'grey', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: -5, temperatureMax: 16, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_sweatpants_warm', name: 'Black sweatpants warm material inside', category: 'bottom', color_family: 'black', formality: [1], style_tags: ['sporty', 'street'], temperatureMin: -5, temperatureMax: 16, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wg_cargo_cuffed', name: 'White/grey cargo (cuffed)', category: 'bottom', color_family: 'mixed', formality: [2, 3], style_tags: ['street', 'casual'], temperatureMin: 5, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'grn_cargo', name: 'Green cargo', category: 'bottom', color_family: 'green', formality: [2, 3], style_tags: ['street', 'casual', 'smart'], temperatureMin: 5, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'bge_cargo_cuffed', name: 'Beige cargo (cuffed)', category: 'bottom', color_family: 'beige', formality: [2, 3], style_tags: ['street', 'casual', 'smart'], temperatureMin: 5, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_cargo_cuffed', name: 'Black cargo (cuffed)', category: 'bottom', color_family: 'black', formality: [2], style_tags: ['street', 'casual'], temperatureMin: 5, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'bge_formal_levis', name: "Beige formal Levi's", category: 'bottom', color_family: 'beige', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 5, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_thin_formal_zara', name: 'White thin formal Zara trouser', category: 'bottom', color_family: 'white', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 12, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_thin_formal_zara', name: 'Black thin formal Zara trouser', category: 'bottom', color_family: 'black', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 12, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'grn_thin_formal_zara', name: 'Green thin formal Zara trouser', category: 'bottom', color_family: 'green', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 12, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'suit_pants', name: 'Suit pants', category: 'bottom', color_family: 'grey', formality: [4], style_tags: ['formal'], temperatureMin: -5, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      
+      // Shorts (Temp Bounds modified per request: 16 to 45)
+      { id: 'wht_thin_shorts', name: 'White thin shorts', category: 'bottom', color_family: 'white', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 16, temperatureMax: 45, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blu_thin_shorts', name: 'Blue thin shorts', category: 'bottom', color_family: 'blue', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 16, temperatureMax: 45, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'grn_thin_shorts', name: 'Green thin shorts', category: 'bottom', color_family: 'green', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 16, temperatureMax: 45, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_thin_shorts', name: 'Black thin shorts', category: 'bottom', color_family: 'black', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 16, temperatureMax: 45, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_newera_shorts', name: 'White New Era branded shorts', category: 'bottom', color_family: 'white', formality: [2], style_tags: ['street', 'casual'], temperatureMin: 16, temperatureMax: 45, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'jean_shorts', name: 'Jean shorts', category: 'bottom', color_family: 'blue', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 16, temperatureMax: 45, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+
+      // T-Shirts
+      { id: 'wht_champions_old', name: 'White Champions', category: 'tshirt', color_family: 'white', formality: [1], style_tags: ['sporty'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_massimo_ts', name: 'White Massimo', category: 'tshirt', color_family: 'white', formality: [3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_tommy_nologo_ts', name: 'White Tommy no logo', category: 'tshirt', color_family: 'white', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_tommy_logo_ts', name: 'White Tommy logo', category: 'tshirt', color_family: 'white', formality: [2, 3], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_zara_ovr_ts', name: 'White Zara oversize', category: 'tshirt', color_family: 'white', formality: [1, 2, 3], style_tags: ['sporty', 'street', 'casual'], temperatureMin: 15, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'gry_zara_ovr_ts', name: 'Grey Zara oversize', category: 'tshirt', color_family: 'grey', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'bge_massimo_ts', name: 'Beige Massimo', category: 'tshirt', color_family: 'beige', formality: [3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'bge_hm_ovr_ts', name: 'Beige H&M oversize', category: 'tshirt', color_family: 'beige', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: 15, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_zara_ovr_ts', name: 'Black Zara oversize', category: 'tshirt', color_family: 'black', formality: [2, 3], style_tags: ['street', 'casual'], temperatureMin: 15, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'brn_newera_ts', name: 'Brown oversize New Era', category: 'tshirt', color_family: 'brown', formality: [2, 3], style_tags: ['street', 'casual'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_newera_ts', name: 'Black oversize New Era', category: 'tshirt', color_family: 'black', formality: [2, 3], style_tags: ['street', 'casual'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_hs_sporty_ts', name: 'White High school', category: 'tshirt', color_family: 'white', formality: [1], style_tags: ['sporty'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blu_tommy_sporty_ts', name: 'Blue Tommy sporty', category: 'tshirt', color_family: 'blue', formality: [1], style_tags: ['sporty'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_lewis_ts', name: 'Black Lewis Hamilton', category: 'tshirt', color_family: 'black', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_tommy_ls', name: 'White Tommy long sleeve', category: 'longsleeve', color_family: 'white', formality: [2, 3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 10, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+
+      // Shirts
+      { id: 'wht_boss_shirt', name: 'White Boss suit style', category: 'shirt', color_family: 'white', formality: [4], style_tags: ['formal'], temperatureMin: 10, temperatureMax: 28, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_zara_thick_shirt', name: 'White Zara thicker material', category: 'shirt', color_family: 'white', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 10, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'lblu_zara_thick_shirt', name: 'Light Blue Zara thicker', category: 'shirt', color_family: 'light blue', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 10, temperatureMax: 25, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_zara_linen_shirt', name: 'White Zara Linen', category: 'shirt', color_family: 'white', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 18, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_burberry_linen_shirt', name: 'White Burberry Linen', category: 'shirt', color_family: 'white', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 18, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_striped_zara_linen', name: 'White Striped Zara Linen', category: 'shirt', color_family: 'white', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 18, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'lblu_oldridel_linen', name: 'Light Blue Old Ridel Linen', category: 'shirt', color_family: 'light blue', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 18, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'grn_massimo_linen', name: 'Green Massimo Linen', category: 'shirt', color_family: 'green', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 18, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'dblu_oldridel_linen', name: 'Dark Blue Old Ridel Linen', category: 'shirt', color_family: 'navy', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 18, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_rl_linen', name: 'Black Ralph Lauren Linen', category: 'shirt', color_family: 'black', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 18, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+
+      // Sweaters / Hoodies / Polos
+      { id: 'wht_zara_qzip', name: 'White Zara quarter zip', category: 'sweater', color_family: 'white', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'gry_rl_thin_qzip', name: 'Grey thin RL quarter zip', category: 'sweater', color_family: 'grey', formality: [3], style_tags: ['smart'], temperatureMin: 10, temperatureMax: 20, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'gry_tommy_thin_qzip', name: 'Grey thin Tommy quarter zip', category: 'sweater', color_family: 'grey', formality: [3], style_tags: ['smart'], temperatureMin: 10, temperatureMax: 20, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'bge_tommy_thin_sw', name: 'Beige thin Tommy', category: 'sweater', color_family: 'beige', formality: [3], style_tags: ['smart'], temperatureMin: 10, temperatureMax: 20, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'bdx_jj_thin_sw', name: 'Bordeaux Jack & Jones', category: 'sweater', color_family: 'red', formality: [3], style_tags: ['casual', 'smart'], temperatureMin: 10, temperatureMax: 20, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'dgrn_zara_sw', name: 'Dark green Zara sweater', category: 'sweater', color_family: 'green', formality: [3], style_tags: ['smart'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'dgrn_gant_ovr_sw', name: 'Dark green Gant oversized', category: 'sweater', color_family: 'green', formality: [2, 3, 4], style_tags: ['street', 'casual', 'smart', 'formal'], temperatureMin: -5, temperatureMax: 15, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'dbrn_zara_qzip', name: 'Dark brown Zara quarter zip', category: 'sweater', color_family: 'brown', formality: [2, 3], style_tags: ['casual', 'smart'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'dblu_rl_thin_sw', name: 'Dark blue RL old money', category: 'sweater', color_family: 'navy', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 10, temperatureMax: 20, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_tommy_hd', name: 'White Tommy hoodie', category: 'hoodie', color_family: 'white', formality: [2, 3], style_tags: ['street', 'casual'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_pullbear_hd', name: 'White Pull&Bear hoodie', category: 'hoodie', color_family: 'white', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'gry_copenhagen_hd', name: 'Grey Copenhagen hoodie', category: 'hoodie', color_family: 'grey', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_f1_hd', name: 'Black F1 hoodie', category: 'hoodie', color_family: 'black', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_travis_hd', name: 'Black Travis hoodie', category: 'hoodie', color_family: 'black', formality: [1, 2, 3], style_tags: ['sporty', 'street', 'casual'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_tommy_lewis_hd', name: 'Black Tommy Lewis hoodie', category: 'hoodie', color_family: 'black', formality: [1, 2, 3], style_tags: ['sporty', 'street', 'casual'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'grn_zara_polo', name: 'Green Zara polo', category: 'polo', color_family: 'green', formality: [3], style_tags: ['smart'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'gry_f1_tommy_polo', name: 'Grey F1 Tommy polo', category: 'polo', color_family: 'grey', formality: [2, 3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_burberry_polo', name: 'Black Burberry polo', category: 'polo', color_family: 'black', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+
+      // Outerwear
+      { id: 'suit_jacket', name: 'Suit jacket', category: 'suit', color_family: 'grey', formality: [4], style_tags: ['formal'], temperatureMin: -5, temperatureMax: 22, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blu_ck_quilted', name: 'Blue quilted Calvin Klein', category: 'outer', color_family: 'navy', formality: [3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 5, temperatureMax: 15, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'red_ferrari_wind', name: 'Red Ferrari wind checker', category: 'outer', color_family: 'red', formality: [2], style_tags: ['sporty', 'street'], temperatureMin: 10, temperatureMax: 22, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_massimo_formal_jk', name: 'Black Massimo Dutti formal', category: 'outer', color_family: 'black', formality: [3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_mxgp', name: 'Black MXGP racing jacket', category: 'outer', color_family: 'black', formality: [2], style_tags: ['street', 'casual'], temperatureMin: 10, temperatureMax: 22, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blu_mango_trench', name: 'Blue Mango trench coat', category: 'outer', color_family: 'blue', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: 5, temperatureMax: 18, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'dblu_mountain_jk', name: 'Dark blue mountain jacket', category: 'outer', color_family: 'navy', formality: [1, 2], style_tags: ['sporty'], temperatureMin: -10, temperatureMax: 10, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_skiing_jk', name: 'Black/blue skiing jacket', category: 'outer', color_family: 'black', formality: [1], style_tags: ['sporty'], temperatureMin: -10, temperatureMax: 10, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'navy_tommy_long_jk', name: 'Warm long Tommy jacket', category: 'outer', color_family: 'navy', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: -15, temperatureMax: 5, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+
+      // Shoes
+      { id: 'nike_dunk_low_wt', name: 'Nike Dunk Low wht/turquoise', category: 'shoes', color_family: 'white', formality: [1, 2, 3], style_tags: ['sporty', 'street', 'casual'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'nike_dunk_high_red', name: 'Nike Dunk High wine red', category: 'shoes', color_family: 'red', formality: [1, 2, 3, 4], style_tags: ['sporty', 'street', 'casual', 'smart', 'formal'], temperatureMin: -10, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'nike_blazers_wht', name: 'Nike Blazers High white', category: 'shoes', color_family: 'white', formality: [1, 2, 3, 4], style_tags: ['sporty', 'street', 'casual', 'smart', 'formal'], temperatureMin: -10, temperatureMax: 30, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'nike_formal_wg', name: 'Nike formal shoes white/grey', category: 'shoes', color_family: 'white', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+
+      // Caps
+      { id: 'wht_sox_cap', name: 'White Sox Comiskey Black/Pink', category: 'cap', color_family: 'mixed', formality: [2], style_tags: ['street'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'yankees_olive_cap', name: 'Yankees Olive 39Thirty', category: 'cap', color_family: 'olive', formality: [2, 3], style_tags: ['street', 'casual', 'smart'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'ohtani_dodgers_cap', name: 'Ohtani Dodgers Blackout 59Fifty', category: 'cap', color_family: 'black', formality: [1, 2], style_tags: ['sporty', 'street', 'casual'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'tokyo_dodgers_cap', name: 'Tokyo Series 2025 Dodgers', category: 'cap', color_family: 'mixed', formality: [2, 3], style_tags: ['street', 'casual', 'smart'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'yankees_corduroy_cap', name: 'Yankees Navy Corduroy 9Forty', category: 'cap', color_family: 'navy', formality: [2, 3, 4], style_tags: ['street', 'smart', 'formal'], temperatureMin: -10, temperatureMax: 20, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'oakland_earthquake_cap', name: "Oakland A's Earthquake", category: 'cap', color_family: 'mixed', formality: [2, 3], style_tags: ['street', 'casual', 'smart'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'yankees_blackrose_cap', name: 'Yankees Black Rose 9Twenty', category: 'cap', color_family: 'black', formality: [3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'wht_tagheuer_cap', name: 'White Tag Heuer 9Twenty', category: 'cap', color_family: 'white', formality: [2, 3], style_tags: ['street', 'casual', 'smart'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_tagheuer_cap', name: 'Black Tag Heuer 9Forty', category: 'cap', color_family: 'black', formality: [1, 2], style_tags: ['sporty', 'street'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'bge_rl_dadcap', name: 'Beige Ralph Lauren dad cap', category: 'cap', color_family: 'beige', formality: [3, 4], style_tags: ['smart', 'formal'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blk_decathlon_cap', name: 'Black Decathlon sporty cap', category: 'cap', color_family: 'black', formality: [1], style_tags: ['sporty', 'street'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null },
+      { id: 'blu_ny_souvenir_cap', name: 'Blue unstructured NY souvenir', category: 'cap', color_family: 'blue', formality: [1], style_tags: ['sporty'], temperatureMin: -10, temperatureMax: 40, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null }
+    ];
+
+    function getMaxWears(item) {
+       if (item.category === 'outer' || item.category === 'shoes' || item.category === 'cap') return 9999;
+       if (item.color_family === 'white') return 4;
+       if (item.name.toLowerCase().includes('cargo')) return 6;
+       if (item.category === 'suit') return 5;
+       return 4; // covers shorts, pants, shirts, tshirts, hoodies, sweaters, polos
+    }
+
+    function initData() {
+      if (!localStorage.getItem('wardrobe_data')) {
+        localStorage.setItem('wardrobe_data', JSON.stringify(defaultWardrobe));
+      }
+      let items = JSON.parse(localStorage.getItem('wardrobe_data'));
+      let needsSave = false;
+      
+      // Migration: Initialize wears_since_clean
+      items.forEach(i => {
+         if (i.wears_since_clean === undefined) {
+             i.wears_since_clean = i.is_dirty ? getMaxWears(i) : 0;
+             needsSave = true;
+         }
+      });
+      // Migration: Add Ami Paris items if missing
+      if (!items.find(i => i.id === 'ami_paris_wht_ts')) {
+         items.push({ id: 'ami_paris_wht_ts', name: 'Ami paris white tshirt', category: 'tshirt', color_family: 'white', formality: [3, 4], style_tags: ['casual', 'smart', 'formal'], temperatureMin: 15, temperatureMax: 35, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null });
+         items.push({ id: 'ami_wht_ovr_hd', name: 'Ami paris white oversize hoodie embroided A', category: 'hoodie', color_family: 'white', formality: [2, 3, 4], style_tags: ['casual', 'smart'], temperatureMin: 5, temperatureMax: 15, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null });
+         items.push({ id: 'ami_wht_hd', name: 'Ami paris white hoodie', category: 'hoodie', color_family: 'white', formality: [2, 3], style_tags: ['street', 'casual'], temperatureMin: 5, temperatureMax: 15, last_worn: null, times_worn: 0, is_dirty: false, photo_id: null });
+         needsSave = true;
+      }
+      
+      // Migration: Revert redundant category names deletion using defaultWardrobe source
+      items.forEach(i => {
+         const def = defaultWardrobe.find(d => d.id === i.id);
+         if (def && i.name !== def.name) {
+            i.name = def.name;
+            needsSave = true;
+         } else if (i.id === 'ami_paris_wht_ts' && i.name !== 'Ami paris white tshirt') {
+            i.name = 'Ami paris white tshirt'; needsSave = true;
+         } else if (i.id === 'ami_wht_ovr_hd' && i.name !== 'Ami paris white oversize hoodie embroided A') {
+            i.name = 'Ami paris white oversize hoodie embroided A'; needsSave = true;
+         } else if (i.id === 'ami_wht_hd' && i.name !== 'Ami paris white hoodie') {
+            i.name = 'Ami paris white hoodie'; needsSave = true;
+         }
+      });
+
+      // Migration: Fix user requested item colors and names
+      const fixMap = {
+         'dbrn_zara_qzip': { color_family: 'dark brown' },
+         'grn_zara_polo': { color_family: 'dark green' },
+         'blu_mango_trench': { name: 'Navy blue mango trench coat', color_family: 'navy' },
+         'blu_ck_quilted': { color_family: 'navy' },
+         'dblu_mountain_jk': { color_family: 'navy' },
+         'navy_tommy_long_jk': { color_family: 'navy' },
+         'nike_dunk_high_red': { color_family: 'dark red' }
+      };
+      items.forEach(i => {
+         if (fixMap[i.id]) {
+            if (fixMap[i.id].name && i.name !== fixMap[i.id].name) { i.name = fixMap[i.id].name; needsSave = true; }
+            if (fixMap[i.id].color_family && i.color_family !== fixMap[i.id].color_family) { i.color_family = fixMap[i.id].color_family; needsSave = true; }
+         }
+      });
+      
+      if (needsSave) localStorage.setItem('wardrobe_data', JSON.stringify(items));
+      return items;
+    }
+    const wardrobeItems = initData();
+    const settings = JSON.parse(localStorage.getItem('wardrobe_settings')) || { city: 'Barcelona', lat: 41.3851, lon: 2.1734, cooldown: 2, theme: 'light' };
+    document.documentElement.setAttribute('data-theme', settings.theme || 'light');
+    const appState = {
+       history: JSON.parse(localStorage.getItem('wardrobe_history') || '[]'),
+       currentOfflineList: []
+    };
+
+    // ==========================================
+    // 2. CONNECTIVITY & WEATHER (LOCAL FILTER PREP)
+    // ==========================================
+    let isOnline = navigator.onLine;
+    let weatherData = { temp: 20, rain: false };
+    let appPrefs = { legs: null, layering: null, formality: null, cap: null };
+
+    const statusPill = document.getElementById('status-pill');
+    const statusText = document.getElementById('status-text');
+    const statusDot = document.getElementById('status-dot');
+
+    function updateNetworkStatus() {
+      isOnline = navigator.onLine;
+      if (isOnline) {
+        statusPill.className = 'online';
+        statusDot.className = 'dot online';
+        statusText.className = 'online';
+        statusText.innerText = 'Online';
+        fetchWeather();
+      } else {
+        statusPill.className = 'offline';
+        statusDot.className = 'dot offline';
+        statusText.className = 'offline';
+        statusText.innerText = 'No connection';
+        document.getElementById('weather-text').innerText = 'Offline';
+        document.getElementById('weather-icon').innerText = '📵';
+        document.getElementById('weather-container').style.background = 'var(--danger-bg)';
+        document.getElementById('weather-container').style.borderColor = 'var(--danger-border)';
+        document.getElementById('weather-container').querySelector('#weather-text').style.color = 'var(--danger)';
+      }
+    }
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+
+    async function fetchWeather() {
+      if (!isOnline) return;
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${settings.lat}&longitude=${settings.lon}&current_weather=true&hourly=temperature_2m,apparent_temperature,weather_code&timezone=auto&forecast_days=2`);
+        const json = await res.json();
+        
+        const currentIsoStr = json.current_weather.time; 
+        const hourlyTimes = json.hourly.time;
+        const currentIndex = hourlyTimes.findIndex(t => t >= currentIsoStr);
+        
+        if (currentIndex !== -1) {
+            const currentDay = currentIsoStr.split('T')[0];
+            const endOfDayIndex = hourlyTimes.findIndex((t, idx) => idx > currentIndex && !t.startsWith(currentDay));
+            const sliceEnd = endOfDayIndex === -1 ? currentIndex + 12 : endOfDayIndex;
+            
+            const temps = json.hourly.temperature_2m.slice(currentIndex, sliceEnd);
+            const feels = json.hourly.apparent_temperature.slice(currentIndex, sliceEnd);
+            const codes = json.hourly.weather_code.slice(currentIndex, sliceEnd);
+            
+            weatherData.rain = codes.some(code => [51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99].includes(code));
+            weatherData.temp = Math.round(json.current_weather.temperature);
+            
+            const hourlyContainer = document.getElementById('hourly-weather');
+            hourlyContainer.style.display = 'flex';
+            hourlyContainer.innerHTML = '';
+            
+            for (let i = 0; i < temps.length; i++) {
+               const timeStr = hourlyTimes[currentIndex + i].split('T')[1]; 
+               const div = document.createElement('div');
+               div.className = 'hour-block';
+               
+               const c = codes[i];
+               let iEmoji = [51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99].includes(c) ? '🌧️' : '☀️';
+               if (c >= 1 && c <= 3) iEmoji = '⛅';
+               
+               div.innerHTML = `
+                 <div class="hour-time">${timeStr} ${iEmoji}</div>
+                 <div class="hour-temp">${Math.round(temps[i])}°</div>
+                 <div class="hour-feel">Feels ${Math.round(feels[i])}°</div>
+               `;
+               hourlyContainer.appendChild(div);
+            }
+            
+            const currCode = json.current_weather.weathercode;
+            let conditionStr = "Clear skies";
+            if (currCode >= 1 && currCode <= 3) conditionStr = "Soft clouds";
+            else if (weatherData.rain) conditionStr = "Light rain";
+            if (currCode >= 61) conditionStr = "Rain";
+            
+            const numWords = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty", "Twenty-one", "Twenty-two", "Twenty-three", "Twenty-four", "Twenty-five", "Twenty-six", "Twenty-seven", "Twenty-eight", "Twenty-nine", "Thirty", "Thirty-one", "Thirty-two", "Thirty-three", "Thirty-four", "Thirty-five", "Thirty-six", "Thirty-seven", "Thirty-eight", "Thirty-nine", "Forty"];
+            let tempStr = Math.round(json.current_weather.temperature);
+            let tempWord = (tempStr >= 0 && tempStr <= 40) ? numWords[tempStr] : tempStr;
+            
+            document.getElementById('v2-weather-subtitle').innerHTML = `${conditionStr} over ${settings.city}.<br>${tempWord} degrees, light breeze.`;
+        }
+      } catch (e) {
+        console.error("Weather API failed", e);
+      }
+    }
+
+    // ==========================================
+    // 3. UI TAB LOGIC & PREFERENCE WORKFLOW
+    // ==========================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+      
+      if (tabId === 'wardrobe') renderWardrobeTab();
+      if (tabId === 'laundry') renderLaundryTab();
+      if (tabId === 'history') renderHistoryTab();
+      if (tabId === 'stats') renderStatsTab();
+    }
+
+    const flowSteps = ['q-legs', 'q-layering', 'q-dress', 'q-cap'];
+    
+    function updateProgressBar(stepIndex) {
+      const segments = document.querySelectorAll('.progress-segment');
+      segments.forEach((seg, i) => {
+        seg.classList.toggle('active', i <= stepIndex);
+      });
+    }
+
+    function goBackPref(prevStepId) {
+      document.querySelectorAll('.question-group').forEach(el => el.classList.remove('active'));
+      document.getElementById(prevStepId).classList.add('active');
+      updateProgressBar(flowSteps.indexOf(prevStepId));
+    }
+
+    function answerPref(key, val, btnEl) {
+      if (btnEl) {
+         // Mark button as selected
+         const group = btnEl.closest('.question-group');
+         group.querySelectorAll('.btn').forEach(b => {
+             b.classList.remove('selected');
+             if (b.querySelector('span')) b.querySelector('span').innerText = '';
+         });
+         btnEl.classList.add('selected');
+         if (btnEl.querySelector('span')) btnEl.querySelector('span').innerText = '✓';
+      }
+      
+      appPrefs[key] = val;
+      
+      setTimeout(() => {
+          const activeGroup = document.querySelector('.question-group.active');
+          if (activeGroup) activeGroup.classList.remove('active');
+          
+          const curIndex = flowSteps.indexOf(key === 'legs' ? 'q-legs' : (key === 'layering' ? 'q-layering' : (key === 'dress' ? 'q-dress' : 'q-cap')));
+          const nextIndex = curIndex + 1;
+          
+          if (nextIndex < flowSteps.length) {
+            document.getElementById(flowSteps[nextIndex]).classList.add('active');
+          } else {
+            if (!isOnline) {
+              document.getElementById('q-offline-weather').classList.add('active');
+            } else {
+              proceedToGenerate();
+            }
+          }
+      }, 300);
+    }
+
+    function answerOfflineWeather(temp) {
+      weatherData.temp = temp;
+      // rain is handled directly inline
+    }
+
+    // ==========================================
+    // 4. LOCAL FILTERING & COMBINATORICS
+    // ==========================================
+    function haveOverlap(arr1, arr2) {
+      if (!arr1 || !arr2) return false;
+      return arr1.some(val => arr2.includes(val));
+    }
+
+    function areTagsCompatible(itemA, itemB) {
+      if (!itemA || !itemB) return true;
+      return haveOverlap(itemA.formality, itemB.formality) && 
+             haveOverlap(itemA.style_tags, itemB.style_tags);
+    }
+
+    function validateOutfitRules(outfit) {
+      const items = [outfit.top, outfit.bottom, outfit.shoes, outfit.outer, outfit.mid, outfit.cap].filter(Boolean);
+      if (!outfit.top || !outfit.bottom || !outfit.shoes) return false;
+
+      for (let i = 0; i < items.length; i++) {
+        for (let j = i + 1; j < items.length; j++) {
+          if (!areTagsCompatible(items[i], items[j])) return false;
+        }
+      }
+
+      const hasShirt = outfit.top.category === 'shirt';
+      const hasTee = items.some(i => i.category === 'tshirt' || i.category === 'longsleeve');
+      const hasHoodie = items.some(i => i.category === 'hoodie');
+      const hasSweater = items.some(i => i.category === 'sweater');
+      const hasWarmLayer = hasHoodie || hasSweater;
+
+      if (hasTee && hasShirt && hasWarmLayer) return false;
+
+      if (hasTee && hasWarmLayer) {
+        const tee = items.find(i => i.category === 'tshirt' || i.category === 'longsleeve');
+        if (tee && !['white', 'beige'].includes(tee.color_family)) return false;
+      }
+
+      if (hasShirt && hasHoodie) return false;
+
+      const hasFormalTrousers = outfit.bottom.style_tags.includes('formal');
+      if (hasFormalTrousers && hasHoodie) return false;
+
+      const hasSportyTee = hasTee && items.find(i => i.category === 'tshirt' || i.category === 'longsleeve').style_tags.includes('sporty');
+      if (hasFormalTrousers && hasSportyTee && !hasSweater) return false;
+
+      const isSweatpants = outfit.bottom.name.toLowerCase().includes('sweatpants');
+      if (isSweatpants && hasShirt) return false;
+
+      const hasFormalShoes = outfit.shoes.style_tags.includes('formal') || outfit.shoes.name.toLowerCase().includes('formal');
+      if (isSweatpants && hasFormalShoes) return false;
+
+      const isHighShoes = outfit.shoes.name.toLowerCase().includes('high');
+      const isShorts = outfit.bottom.name.toLowerCase().includes('shorts');
+      if (isHighShoes && isShorts) return false;
+
+      const hasSuitJacket = outfit.outer && outfit.outer.category === 'suit';
+      const isSuitPants = outfit.bottom.id === 'suit_pants';
+      if (hasSuitJacket && !isSuitPants) return false;
+
+      if (outfit.outer && outfit.outer.name.toLowerCase().includes('trench')) {
+        const hasSportyOrStreet = items.some(i => i.style_tags.includes('sporty') || i.style_tags.includes('street'));
+        if (hasSportyOrStreet) return false;
+      }
+
+      if (outfit.outer && (outfit.outer.category === 'outer' || outfit.outer.category === 'suit')) {
+         if (!hasWarmLayer) {
+           const isException = outfit.outer.name.includes('Ferrari') || outfit.outer.name.includes('MXGP');
+           const isSuit = outfit.outer.category === 'suit';
+           if (!isException && !isSuit) return false;
+         }
+      }
+
+      if (isShorts && outfit.outer && outfit.outer.category === 'outer') {
+         const isException = outfit.outer.name.includes('Ferrari') || outfit.outer.name.includes('MXGP');
+         if (!isException) return false;
+      }
+
+      return true;
+    }
+
+    function proceedToGenerate() {
+      // Hide pref screen, show loading
+      document.getElementById('q-offline-weather') && document.getElementById('q-offline-weather').classList.remove('active');
+      document.getElementById('preference-screen').style.display = 'none';
+      document.getElementById('loading-state').style.display = 'block';
+
+      // Start processing offline filtering async to immediately feel snappy
+      setTimeout(() => {
+        executeFiltering();
+      }, 50);
+    }
+
+    function executeFiltering() {
+       const msPerDay = 1000 * 60 * 60 * 24;
+       const now = Date.now();
+
+       // 1. Root Local Filters
+       const eligible = wardrobeItems.filter(item => {
+          if (item.is_dirty) return false;
+          if (item.last_worn) {
+             const daysSince = (now - new Date(item.last_worn).getTime()) / msPerDay;
+             if (daysSince < settings.cooldown) return false;
+          }
+          if (weatherData.temp < item.temperatureMin || weatherData.temp > item.temperatureMax) return false;
+          
+          if (!item.formality.some(f => f >= appPrefs.dress - 1 && f <= appPrefs.dress + 1)) return false;
+
+          if (item.category === 'bottom') {
+             const isShorts = item.name.toLowerCase().includes('shorts');
+             if (appPrefs.legs === 'shorts' && !isShorts) return false;
+             if (appPrefs.legs === 'trousers' && isShorts) return false;
+          }
+
+          if (appPrefs.layering === 'top') {
+             if (['sweater', 'hoodie', 'outer', 'suit'].includes(item.category)) return false;
+          }
+
+          if (item.category === 'cap' && appPrefs.cap === 'no') return false;
+
+          return true;
+       });
+
+       // 2. Categorize for combinatorics
+       const tops = eligible.filter(i => ['tshirt', 'longsleeve', 'shirt', 'polo'].includes(i.category));
+       const bottoms = eligible.filter(i => i.category === 'bottom');
+       const shoes = eligible.filter(i => i.category === 'shoes');
+       const mids = eligible.filter(i => ['sweater', 'hoodie'].includes(i.category));
+       const outers = eligible.filter(i => i.category === 'outer' || i.category === 'suit');
+       const caps = eligible.filter(i => i.category === 'cap');
+
+       let combinations = [];
+
+       for (const t of tops) {
+         for (const b of bottoms) {
+           for (const s of shoes) {
+             let base = { top: t, bottom: b, shoes: s };
+             if (validateOutfitRules(base)) {
+                combinations.push({...base});
+
+                if (appPrefs.layering !== 'top') {
+                  // Mids
+                  for (const m of mids) {
+                    let wMid = {...base, mid: m};
+                    if (validateOutfitRules(wMid)) {
+                      combinations.push({...wMid});
+                      for (const o of outers) {
+                        let wOuter = {...wMid, outer: o};
+                        if (validateOutfitRules(wOuter)) combinations.push({...wOuter});
+                      }
+                    }
+                  }
+                  // Just outer
+                  for (const o of outers) {
+                    let wOuter = {...base, outer: o};
+                    if (validateOutfitRules(wOuter)) combinations.push({...wOuter});
+                  }
+                }
+             }
+           }
+         }
+       }
+
+       // Shuffle
+       combinations.sort(() => 0.5 - Math.random());
+
+       // Cap injection (Ensure exactly full descriptors + caps included where appropriate)
+       let finalList = [];
+       for (const c of combinations) {
+          if (finalList.length >= 25) break;
+
+          if (appPrefs.cap !== 'no' && caps.length > 0) {
+            let validCaps = caps.filter(capItem => validateOutfitRules({...c, cap: capItem}));
+            if (validCaps.length > 0) {
+               // Assign a random valid cap
+               let pCap = validCaps[Math.floor(Math.random() * validCaps.length)];
+               finalList.push({...c, cap: pCap});
+               
+               // Keep the non-cap variant too if preferred
+               if (appPrefs.cap === 'any' && finalList.length < 25) {
+                 finalList.push({...c});
+               }
+               continue;
+            }
+          }
+          if (appPrefs.cap === 'yes') continue; // Reject if user strictly wanted a cap but none match
+          
+          finalList.push({...c});
+       }
+
+       console.log(`Generated ${finalList.length} total valid shortlisted outfits for Gemini.`);
+       
+       if (finalList.length === 0) {
+          document.getElementById('loading-text').innerText = "Oops, we couldn't find anything that matched your request. Try loosening your preferences!";
+          return;
+       }
+
+       if (!isOnline || !settings.api_key) {
+           setTimeout(() => {
+               renderOfflineShortlist(finalList);
+           }, 800);
+           return;
+       }
+
+       setTimeout(() => {
+           document.getElementById('loading-text').innerText = "Curating your best looks with Gemini...";
+           callGeminiAPI(finalList);
+       }, 500);
+    }
+
+    // ==========================================
+    // 5. OUTFITS RENDER & GEMINI
+    // ==========================================
+    let currentGeminiData = null;
+    let showingCapVariants = false;
+    let selectedOutfit = null;
+
+    function getSlotLabel(item) {
+       const c = item.category;
+       if (c === 'tshirt' || c === 'longsleeve' || c === 'shirt') return 'Top';
+       if (c === 'hoodie' || c === 'sweater') return 'Mid';
+       if (c === 'jacket') return 'Outer';
+       if (c === 'bottom') return 'Bottom';
+       if (c === 'shoes') return 'Shoes';
+       if (c === 'cap') return 'Cap';
+       return c;
+    }
+
+    function renderItemRow(id, outfitIndex) {
+       const item = wardrobeItems.find(i => i.id === id);
+       if (!item) return '';
+       const dotColor = getDotColor(item);
+       const c = getDotColor(item);
+       const slot = getSlotLabel(item);
+       
+       return `
+         <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+               <div style="width: 30px; height: 30px; border-radius: 8px; background: ${c}; border: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                  <span style="font-size: 7px; color: rgba(255,255,255,0.3); text-transform: uppercase;">img</span>
+               </div>
+               <div>
+                  <div style="font-size: 9px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">${slot}</div>
+                  <div style="font-size: 13px; color: var(--text-light);">${item.name}</div>
+                  <div style="font-size: 10px; color: var(--text-dim); margin-top: 2px;">${item.wears_since_clean || 0}/${getMaxWears(item) > 1000 ? '∞' : getMaxWears(item)} wears</div>
+               </div>
+            </div>
+            <div onclick="event.stopPropagation(); openSwap(${outfitIndex}, '${item.id}', event)" style="font-size: 10px; color: var(--text-muted); cursor: pointer; padding: 4px 9px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); text-transform: uppercase; letter-spacing: 0.06em;">swap</div>
+         </div>
+       `;
+    }
+
+    function renderFormalityDots(level) {
+       return [1,2,3,4].map(i => `<div class="formality-dot${i <= level ? ' filled' : ''}"></div>`).join('');
+    }
+
+    function renderOutfitCard(outfitObj, index, isOffline = false) {
+       let itemsList = isOffline ? Object.values(outfitObj).map(i => i.id) : outfitObj.items;
+       let itemsHtml = itemsList.map(id => renderItemRow(id, index)).join('');
+       const formalityLevel = outfitObj.formality || 2;
+       const formalityLabels = {1: 'Comfy', 2: 'Streetwear', 3: 'Smart Casual', 4: 'Formal'};
+
+       if (isOffline) {
+         return `
+           <div class="outfit-card" id="card-${index}" onclick="selectOutfit(${index}, this)" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; position: relative;">
+              <div>${itemsHtml}</div>
+           </div>
+         `;
+       }
+
+       return `
+         <div class="outfit-card" id="card-${index}" onclick="selectOutfit(${index}, this)" style="background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+               <div style="flex: 1; padding-right: 12px;">
+                  <div style="font-size: 18px; color: var(--text); font-family: var(--font-serif); font-style: italic;">${outfitObj.vibe || 'Look ' + (index+1)}</div>
+                  <div style="font-size: 11px; color: #666; margin-top: 3px; line-height: 1.4;">${outfitObj.reasoning || ''}</div>
+               </div>
+               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0;">
+                  <div class="formality-dots">${renderFormalityDots(formalityLevel)}</div>
+                  <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;">${formalityLabels[formalityLevel] || ''}</div>
+               </div>
+            </div>
+            <div>${itemsHtml}</div>
+         </div>
+       `;
+    }
+
+    function selectOutfit(idx, el) {
+       document.querySelectorAll('.outfit-card').forEach(c => { c.style.borderColor = 'var(--border)'; c.style.background = 'var(--surface)'; });
+       el.style.borderColor = 'var(--gold-border)';
+       el.style.background = 'var(--gold-bg-active)';
+       selectedOutfit = currentGeminiData ? (showingCapVariants ? currentGeminiData.cap_variants[idx] : currentGeminiData.outfits[idx]) : appState.currentOfflineList[idx];
+       document.getElementById('confirm-outfit-btn').disabled = false;
+    }
+
+    function renderOfflineShortlist(list) {
+       appState.currentOfflineList = list;
+       document.getElementById('loading-state').style.display = 'none';
+       document.getElementById('outfits-screen').style.display = 'block';
+       document.getElementById('outfits-subtitle').innerHTML = '<span style="color: var(--danger);">Offline — filtered locally</span>';
+       document.getElementById('cap-toggle-container').style.display = 'none';
+       document.getElementById('today-heading').innerHTML = 'Pick your look.';
+       
+       let html = '';
+       list.slice(0, 15).forEach((item, i) => { html += renderOutfitCard(item, i, true); });
+       document.getElementById('outfits-container').innerHTML = html;
+    }
+
+    async function callGeminiAPI(finalList) {
+        let shortlistStr = finalList.map((outfit, index) => {
+            let itemsDesc = [];
+            if (outfit.top) itemsDesc.push({ id: outfit.top.id, name: outfit.top.name, color: outfit.top.color_family, category: outfit.top.category, tags: outfit.top.style_tags });
+            if (outfit.bottom) itemsDesc.push({ id: outfit.bottom.id, name: outfit.bottom.name, color: outfit.bottom.color_family, category: outfit.bottom.category, tags: outfit.bottom.style_tags });
+            if (outfit.shoes) itemsDesc.push({ id: outfit.shoes.id, name: outfit.shoes.name, color: outfit.shoes.color_family, category: outfit.shoes.category, tags: outfit.shoes.style_tags });
+            if (outfit.mid) itemsDesc.push({ id: outfit.mid.id, name: outfit.mid.name, color: outfit.mid.color_family, category: outfit.mid.category, tags: outfit.mid.style_tags });
+            if (outfit.outer) itemsDesc.push({ id: outfit.outer.id, name: outfit.outer.name, color: outfit.outer.color_family, category: outfit.outer.category, tags: outfit.outer.style_tags });
+            if (outfit.cap) itemsDesc.push({ id: outfit.cap.id, name: outfit.cap.name, color: outfit.cap.color_family, category: outfit.cap.category, tags: outfit.cap.style_tags });
+            return `Combo ${index + 1}: ` + JSON.stringify(itemsDesc);
+        }).join('\\n');
+
+        const historyLast14Days = appState.history.filter(h => (Date.now() - new Date(h.date).getTime()) < 14 * 24 * 60 * 60 * 1000);
+        const historyStr = historyLast14Days.length > 0 ? JSON.stringify(historyLast14Days) : "None recently.";
+
+        const promptText = `You are a personal stylist assistant for a 21-year-old male with modern, casual style.
+Weather: ${weatherData.temp}°C, Rain: ${weatherData.rain}. Preferences: Formality ${appPrefs.dress}/4, Cap usage: '${appPrefs.cap}'.
+Recent Wear History: ${historyStr}
+
+Here is a pre-filtered shortlist of perfectly constructed, valid combinations ready to be sourced:
+${shortlistStr}
+
+Return exactly 6 outfits total as JSON:
+Group A — 3 default picks: 3 best genuinely diverse outfits directly from the shortlist combinations provided above. Do not mix and match across combos unless you are absolutely sure it falls into valid boundaries. Always return exactly 3. If 'any' on cap preference: >=1 must have cap and >=1 must not. If 'yes': all 3 must have cap. If 'no': none should have a cap.
+Group B — 3 cap variants: Take your 3 default picks and return an EXACT copy of each but either adding or removing a cap. (Exactly 3 entries).
+
+The response format MUST BE RAW JSON ONLY (NO markdown backticks block).
+{
+  "outfits": [ { "label": "Option 1", "vibe": "vibe desc", "items": ["id_1", "id_2"], "has_cap": true, "reasoning": "why", "group": "default" } ],
+  "cap_variants": [ { "label": "Option 1 (Vars)", "vibe": "vibe desc", "items": ["id_1"], "has_cap": true, "reasoning": "why", "group": "cap_variant", "variant_of": "Option 1" } ]
+}`;
+
+        try {
+            const body = {
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: { response_mime_type: "application/json" }
+            };
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${settings.api_key}`, {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+            });
+
+            if (!response.ok) throw new Error("API Network error or Invalid Key");
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+
+            const jsonStr = data.candidates[0].content.parts[0].text;
+            const parsed = JSON.parse(jsonStr);
+
+            renderGeminiOutfits(parsed);
+        } catch (e) {
+            console.error("Gemini Failure", e);
+            document.getElementById('loading-text').innerText = "AI is resting right now. Building manual shortlist...";
+            setTimeout(() => { renderOfflineShortlist(finalList); }, 2000);
+        }
+    }
+
+    function renderGeminiOutfits(parsedData) {
+       currentGeminiData = parsedData;
+       showingCapVariants = false;
+       document.getElementById('loading-state').style.display = 'none';
+       document.getElementById('outfits-screen').style.display = 'block';
+       document.getElementById('outfits-subtitle').innerText = "Curated by Gemini";
+       document.getElementById('today-heading').innerHTML = 'Pick your look.';
+
+       const toggleBtn = document.getElementById('cap-toggle-container');
+       if (appPrefs.cap === 'any') {
+          toggleBtn.style.display = 'flex';
+          const hasCapsMix = parsedData.outfits.some(o => o.has_cap) && parsedData.outfits.some(o => !o.has_cap);
+          document.getElementById('cap-toggle-btn').innerText = hasCapsMix ? 'Show all with caps' : 'Toggle caps';
+       } else {
+          toggleBtn.style.display = 'none';
+       }
+
+       renderActiveCards();
+    }
+
+    function renderActiveCards() {
+       let html = '';
+       let targetArr = showingCapVariants ? currentGeminiData.cap_variants : currentGeminiData.outfits;
+       targetArr.forEach((o, i) => { html += renderOutfitCard(o, i, false); });
+       document.getElementById('outfits-container').innerHTML = html;
+       selectedOutfit = null;
+       document.getElementById('confirm-outfit-btn').disabled = true;
+    }
+
+    function toggleCapVariants() {
+       showingCapVariants = !showingCapVariants;
+       document.getElementById('cap-toggle-btn').innerText = showingCapVariants ? "Show default picks" : "Show with caps";
+       renderActiveCards();
+    }
+
+    function triggerRegenerate() {
+       document.getElementById('outfits-screen').style.display = 'none';
+       document.getElementById('loading-state').style.display = 'block';
+       document.getElementById('loading-text').innerText = "Finding something else...";
+       setTimeout(executeFiltering, 100);
+    }
+    
+    function resetFlow() {
+       document.getElementById('outfits-screen').style.display = 'none';
+       document.getElementById('confirmed-state').style.display = 'none';
+       document.getElementById('preference-screen').style.display = 'block';
+       document.querySelectorAll('.question-group').forEach(el => el.classList.remove('active'));
+       document.getElementById('q-legs').classList.add('active');
+       updateProgressBar(0);
+       document.getElementById('today-heading').innerHTML = 'How are you<br>dressing today?';
+       selectedOutfit = null;
+       currentGeminiData = null;
+    }
+
+    function openSwap(outfitIndex, itemId, event) {
+       event.stopPropagation();
+       const existing = document.getElementById('swap-popover');
+       if (existing) existing.remove();
+
+       let currentOutfitObj = currentGeminiData ? (showingCapVariants ? currentGeminiData.cap_variants[outfitIndex] : currentGeminiData.outfits[outfitIndex]) : appState.currentOfflineList[outfitIndex];
+       let currentItemsPaths = currentGeminiData ? currentOutfitObj.items : Object.values(currentOutfitObj).map(i => i.id);
+
+       const targetItem = wardrobeItems.find(i => i.id === itemId);
+       const topCats = ['tshirt', 'longsleeve', 'shirt', 'polo'];
+       const midCats = ['sweater', 'hoodie'];
+       const rootCategoryList = topCats.includes(targetItem.category) ? topCats : (midCats.includes(targetItem.category) ? midCats : [targetItem.category]);
+
+       const msPerDay = 1000 * 60 * 60 * 24;
+       const now = Date.now();
+       
+       const candidates = wardrobeItems.filter(item => {
+           if (item.id === itemId) return false;
+           if (!rootCategoryList.includes(item.category) && !(rootCategoryList.includes('outer') && item.category === 'suit')) return false;
+           if (item.is_dirty) return false;
+           if (item.last_worn && ((now - new Date(item.last_worn).getTime()) / msPerDay) < settings.cooldown) return false;
+           
+           let testItems = currentItemsPaths.filter(id => id !== itemId).map(id => wardrobeItems.find(i=>i.id===id));
+           testItems.push(item);
+
+           let mockOutfit = {
+               top: testItems.find(i => topCats.includes(i.category)),
+               bottom: testItems.find(i => i.category === 'bottom' || i.id === 'suit_pants'),
+               shoes: testItems.find(i => i.category === 'shoes'),
+               cap: testItems.find(i => i.category === 'cap'),
+               mid: testItems.find(i => midCats.includes(i.category)),
+               outer: testItems.find(i => i.category === 'outer' || (i.category === 'suit' && i.id !== 'suit_pants'))
+           };
+
+           return validateOutfitRules(mockOutfit);
+       });
+
+       candidates.sort(() => 0.5 - Math.random());
+       const top3 = candidates.slice(0, 3);
+       
+       let popoverHTML = `<div id="swap-popover" style="position: absolute; right: 20px; background: #141210; border: 1px solid rgba(201,151,58,0.2); padding: 16px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 1000; display: flex; flex-direction: column; gap: 6px; width: 260px;">`;
+       
+       if (top3.length === 0) {
+          popoverHTML += `<span style="font-size: 10px; color: var(--text-muted);">No valid swaps available.</span>`;
+       } else {
+          popoverHTML += `<span style="font-size: 9px; font-weight: 500; text-transform: uppercase; color: var(--gold); letter-spacing: 0.08em; margin-bottom: 4px;">Compatible Swaps</span>`;
+          top3.forEach(cItem => {
+             const dotColor = cItem.color_family === 'white' ? '#f5f0eb' : (cItem.color_family === 'black' ? '#1a1a1a' : (cItem.color_family === 'grey' ? '#888' : cItem.color_family));
+             const c = cItem.color_family === 'mixed' ? 'repeating-linear-gradient(45deg, #eee, #eee 5px, #888 5px, #888 10px)' : dotColor;
+             popoverHTML += `<div style="display:flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);" onclick="executeSwap(${outfitIndex}, '${itemId}', '${cItem.id}')">
+                <div style="width: 22px; height: 22px; border-radius: 6px; background: ${c}; border: 1px solid rgba(255,255,255,0.12);"></div>
+                <span style="font-size: 13px; flex: 1; color: var(--text-light);">${cItem.name}</span>
+             </div>`;
+          });
+       }
+       popoverHTML += `<div onclick="document.getElementById('swap-popover').remove()" style="text-align: center; margin-top: 8px; font-size: 11px; color: var(--text-muted); cursor: pointer;">Cancel</div>`;
+       popoverHTML += `</div>`;
+
+       document.body.insertAdjacentHTML('beforeend', popoverHTML);
+       const popover = document.getElementById('swap-popover');
+       popover.style.top = (event.pageY + 10) + 'px';
+       popover.style.left = Math.min((event.pageX - 150), window.innerWidth - 270) + 'px';
+       
+       setTimeout(() => {
+          document.addEventListener('click', function closePopover() {
+             const pop = document.getElementById('swap-popover');
+             if (pop) pop.remove();
+             document.removeEventListener('click', closePopover);
+          });
+       }, 50);
+    }
+
+    function executeSwap(outfitIndex, oldItemId, newItemId) {
+        let currentOutfitObj = currentGeminiData ? (showingCapVariants ? currentGeminiData.cap_variants[outfitIndex] : currentGeminiData.outfits[outfitIndex]) : appState.currentOfflineList[outfitIndex];
+        
+        if (currentGeminiData) {
+            let itemArray = currentOutfitObj.items;
+            let idx = itemArray.indexOf(oldItemId);
+            if (idx > -1) itemArray[idx] = newItemId;
+        } else {
+            let itemArray = Object.keys(currentOutfitObj);
+            let key = itemArray.find(k => currentOutfitObj[k].id === oldItemId);
+            if (key) currentOutfitObj[key] = wardrobeItems.find(i => i.id === newItemId);
+        }
+        renderActiveCards();
+    }
+
+    function logOutfit() {
+       if (!selectedOutfit) return;
+       const historyItem = {
+          date: new Date().toISOString(),
+          items: currentGeminiData ? selectedOutfit.items : Object.values(selectedOutfit).map(i => i.id)
+       };
+       appState.history.unshift(historyItem);
+       localStorage.setItem('wardrobe_history', JSON.stringify(appState.history));
+       
+       historyItem.items.forEach(id => {
+          const wItem = wardrobeItems.find(i => i.id === id);
+          if (wItem) {
+             wItem.last_worn = new Date().toISOString();
+             wItem.times_worn += 1;
+             wItem.is_dirty = true;
+          }
+       });
+       localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+       
+       document.getElementById('outfits-screen').style.display = 'none';
+       document.getElementById('confirmed-state').style.display = 'block';
+    }
+
+    // ==========================================
+    // 6. PHOTO DB & WARDROBE TAB
+    // ==========================================
+    let db;
+    const request = indexedDB.open('WardrobePhotos', 1);
+    request.onupgradeneeded = e => {
+       db = e.target.result;
+       if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos');
+    };
+    request.onsuccess = e => db = e.target.result;
+
+    async function savePhoto(id, dataUrl) {
+       return new Promise((resolve) => {
+          if (!db) return resolve();
+          const tx = db.transaction('photos', 'readwrite');
+          tx.objectStore('photos').put(dataUrl, id);
+          tx.oncomplete = resolve;
+       });
+    }
+    async function getPhoto(id) {
+       return new Promise((resolve) => {
+          if (!db) return resolve(null);
+          const tx = db.transaction('photos', 'readonly');
+          const req = tx.objectStore('photos').get(id);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+       });
+    }
+
+    let activePhotoItemId = null;
+
+    function getSlotLabel(item) {
+       const map = { tshirt: 'TOP', longsleeve: 'TOP', shirt: 'TOP', polo: 'TOP', hoodie: 'MID LAYER', sweater: 'MID LAYER', bottom: 'BOTTOM', shoes: 'SHOES', cap: 'CAP', outer: 'OUTER', jacket: 'OUTER', suit: 'SUIT' };
+       return map[item.category] || item.category.toUpperCase();
+    }
+
+    async function openItemDetail(itemId) {
+       activePhotoItemId = itemId;
+       const item = wardrobeItems.find(i => i.id === itemId);
+       if (!item) return;
+       const modal = document.getElementById('photo-modal');
+       modal.style.display = 'block';
+       
+       const c = document.getElementById('photo-flow-content');
+       const dotColor = getDotColor(item);
+       const slot = getSlotLabel(item);
+       const lastWorn = item.last_worn ? timeSince(item.last_worn) : 'Never worn';
+       
+       let photoBlock = '';
+       if (item.photo_id) {
+          const src = await getPhoto(item.photo_id);
+          if (src) {
+             photoBlock = `<img src="${src}" style="width: 100%; max-width: 280px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; object-fit: cover;">`;
+          }
+       }
+       
+       if (!photoBlock) {
+          photoBlock = `<div style="width: 160px; height: 160px; border-radius: 16px; background: ${dotColor}; border: 2px dashed rgba(255,255,255,0.12); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+             <span style="font-size: 12px; color: rgba(255,255,255,0.2); text-transform: uppercase;">No photo</span>
+          </div>`;
+       }
+       
+       c.innerHTML = `
+          <div style="font-size: 9px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">${slot}</div>
+          <div style="font-size: 20px; font-family: var(--font-serif); color: var(--text); margin-bottom: 4px;">${item.name}</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">Worn ${item.times_worn} times · ${item.wears_since_clean || 0}/${getMaxWears(item) > 1000 ? '∞' : getMaxWears(item)} wears since clean · ${lastWorn}${item.is_dirty ? ' · <span style="color: var(--gold);">In laundry</span>' : ''}</div>
+          
+          ${photoBlock}
+          
+          <label class="btn-primary" style="display: block; cursor: pointer; text-align: center; padding: 14px; border-radius: 14px; width: 100%; max-width: 280px; margin: 0 auto;">
+             ${item.photo_id ? 'Replace Photo' : 'Add Photo'}
+             <input type="file" accept="image/*" style="display: none;" onchange="handleItemPhotoUpload(event, '${item.id}')">
+          </label>
+          <div style="font-size: 11px; color: var(--text-dim); margin-top: 10px;">or press Ctrl+V to paste</div>
+          ${item.photo_id ? '<div onclick="removeItemPhoto(\'' + item.id + '\')" style="font-size: 11px; color: var(--danger); margin-top: 14px; cursor: pointer;">Remove photo</div>' : ''}
+       `;
+    }
+
+    function closePhotoFlow() {
+       document.getElementById('photo-modal').style.display = 'none';
+       activePhotoItemId = null;
+       renderWardrobeTab();
+    }
+
+    function handleItemPhotoUpload(event, itemId) {
+       const file = event.target.files[0];
+       if (!file) return;
+       const reader = new FileReader();
+       reader.onload = async (e) => {
+          await savePhoto(itemId, e.target.result);
+          const wItem = wardrobeItems.find(i => i.id === itemId);
+          wItem.photo_id = itemId;
+          localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+          openItemDetail(itemId); // refresh the modal
+       };
+       reader.readAsDataURL(file);
+    }
+
+    async function removeItemPhoto(itemId) {
+       const wItem = wardrobeItems.find(i => i.id === itemId);
+       if (wItem) {
+          wItem.photo_id = null;
+          localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+          // Delete from IndexedDB too
+          if (db) {
+             const tx = db.transaction('photos', 'readwrite');
+             tx.objectStore('photos').delete(itemId);
+          }
+          openItemDetail(itemId);
+       }
+    }
+
+    document.addEventListener('paste', async (e) => {
+       if (document.getElementById('photo-modal').style.display === 'block' && activePhotoItemId) {
+          const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+          for (let i = 0; i < items.length; i++) {
+             if (items[i].type.indexOf("image") === 0) {
+                const blob = items[i].getAsFile();
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                   await savePhoto(activePhotoItemId, ev.target.result);
+                   const wItem = wardrobeItems.find(it => it.id === activePhotoItemId);
+                   wItem.photo_id = activePhotoItemId;
+                   localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+                   openItemDetail(activePhotoItemId); // refresh
+                };
+                reader.readAsDataURL(blob);
+             }
+          }
+       }
+    });
+
+    async function renderWardrobeTab() {
+       renderWardrobeItems();
+    }
+
+    const colorOrder = {
+       'white': 1, 'beige': 2, 'yellow': 3, 'orange': 4, 'mixed': 5, 'pink': 6,
+       'red': 7, 'dark red': 8, 'burgundy': 9, 'wine red': 9, 'light blue': 10, 'blue': 11,
+       'navy': 12, 'purple': 13, 'green': 14, 'dark green': 15, 'olive': 16,
+       'brown': 17, 'dark brown': 18, 'grey': 19, 'black': 20
+    };
+
+    function getDotColor(item) {
+        const c = item.color_family || '';
+        if (c === 'white') return '#f5f0eb';
+        if (c === 'black') return '#1a1a1a';
+        if (c === 'grey') return '#888888';
+        if (c === 'beige') return '#c4b49a';
+        if (c === 'blue') return '#3a5278';
+        if (c === 'green') return '#4a5c3a';
+        if (c === 'brown') return '#6b4c35';
+        if (c === 'navy') return '#1e3a5f';
+        if (c === 'dark green') return '#2f4f2f';
+        if (c === 'dark red' || c === 'burgundy' || c === 'wine red') return '#5e1914';
+        if (c === 'dark brown') return '#4a3424';
+        if (c === 'red') return '#cc0000';
+        if (c === 'yellow') return '#e6b800';
+        if (c === 'orange') return '#d97b00';
+        if (c === 'purple') return '#6a0dad';
+        if (c === 'pink') return '#ffb6c1';
+        if (c === 'mixed') return 'repeating-linear-gradient(45deg, #eee, #eee 5px, #888 5px, #888 10px)';
+        return c; // fallback
+    }
+
+    function renderWardrobeItems() {
+       const c = document.getElementById('wardrobe-items-container');
+       const query = (document.getElementById('wardrobe-search').value || '').toLowerCase();
+       
+       let filteredItems = wardrobeItems;
+       if (query) {
+          filteredItems = wardrobeItems.filter(i => 
+             i.name.toLowerCase().includes(query) || 
+             i.color_family.toLowerCase().includes(query) ||
+             i.style_tags.some(tag => tag.toLowerCase().includes(query))
+          );
+       }
+       
+       // Group items by category
+       const categories = {};
+       const catLabels = { bottom: 'Bottoms', tshirt: 'T-Shirts', longsleeve: 'Long Sleeves', shirt: 'Shirts', polo: 'Polos', hoodie: 'Hoodies', sweater: 'Sweaters', jacket: 'Jackets', shoes: 'Shoes', cap: 'Caps', suit: 'Suit', outer: 'Outerwear' };
+       for (let item of filteredItems) {
+          const lbl = catLabels[item.category] || item.category;
+          if (!categories[lbl]) categories[lbl] = [];
+          categories[lbl].push(item);
+       }
+
+       let html = `<div style="padding: 0 16px;">`;
+       html += `<div class="section-label">Your Wardrobe</div>`;
+       html += `<h1 style="margin-bottom: 20px;">${filteredItems.length} items</h1>`;
+       
+       for (let [cat, items] of Object.entries(categories)) {
+          items.sort((a, b) => {
+             const oa = colorOrder[a.color_family] || 99;
+             const ob = colorOrder[b.color_family] || 99;
+             if (oa !== ob) return oa - ob;
+             return a.name.localeCompare(b.name);
+          });
+          
+          // If searching, keep accordions open, otherwise closed
+          const displayStyle = query ? 'block' : 'none';
+          const borderRadius = query ? '14px 14px 0 0' : '14px';
+          const arrow = query ? '▲' : '▼';
+          
+          html += `
+            <div style="margin-bottom: 10px;">
+              <div onclick="toggleWardrobeCat(this)" style="display: flex; justify-content: space-between; padding: 13px 16px; background: var(--surface); border-radius: ${borderRadius}; border: 1px solid var(--border); cursor: pointer;">
+                <span style="font-size: 14px; color: var(--text-light);">${cat}</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span style="font-size: 11px; color: var(--text-muted);">${items.length}</span>
+                  <span style="font-size: 10px; color: #333;">${arrow}</span>
+                </div>
+              </div>
+              <div class="wardrobe-cat-items" style="display: ${displayStyle};">`;
+          
+          for (let ii = 0; ii < items.length; ii++) {
+             const item = items[ii];
+             const dotColor = getDotColor(item);
+             const isLast = ii === items.length - 1;
+             const colorIcon = `<div style="width: 28px; height: 28px; border-radius: 50%; background: ${dotColor}; border: 1.5px solid rgba(255,255,255,0.12); flex-shrink: 0;"></div>`;
+             const dirtyBadge = item.is_dirty ? ' <span style="font-size: 11px;">🧺</span>' : '';
+             const lastWorn = item.last_worn ? timeSince(item.last_worn) : 'Never worn';
+             html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; background: rgba(255,255,255,0.02); border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.04); ${isLast ? 'border-radius: 0 0 14px 14px;' : ''}">
+                   <div style="display: flex; gap: 10px; align-items: center;">
+                      ${colorIcon}
+                      <div>
+                         <div style="font-size: 13px; color: ${item.is_dirty ? 'var(--gold)' : '#ccc'};">${capitalize(item.name)}${dirtyBadge}</div>
+                         <div style="font-size: 10px; color: var(--text-muted);">Last worn ${lastWorn}</div>
+                      </div>
+                   </div>
+                   <div style="display: flex; gap: 8px; align-items: center;">
+                      <div style="font-size: 10px; color: ${item.is_dirty ? 'var(--gold)' : 'var(--text-muted)'}; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 12px; font-variant-numeric: tabular-nums;">
+                          ${item.wears_since_clean || 0}/${getMaxWears(item) > 1000 ? '∞' : getMaxWears(item)}
+                      </div>
+                      <div class="formality-dots" style="margin-left: 2px;">${renderFormalityDots(Math.max(...item.formality))}</div>
+                      <div onclick="openEditItemModal('${item.id}', event)" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-size: 11px; flex-shrink: 0;" title="Edit item">✏️</div>
+                      <div onclick="toggleDirtyFromWardrobe('${item.id}', event)" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; background: ${item.is_dirty ? 'rgba(201,151,58,0.15)' : 'rgba(255,255,255,0.04)'}; border: 1px solid ${item.is_dirty ? 'rgba(201,151,58,0.3)' : 'rgba(255,255,255,0.08)'}; font-size: 12px; flex-shrink: 0;" title="${item.is_dirty ? 'Mark clean' : 'Send to laundry'}">${item.is_dirty ? '✓' : '🧺'}</div>
+                   </div>
+                </div>`;
+          }
+          html += `</div></div>`;
+       }
+       
+       html += `<div onclick="openAddItemModal()" style="padding: 13px 16px; margin-top: 6px; margin-bottom: 24px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(201,151,58,0.2); text-align: center; font-size: 13px; color: var(--gold); cursor: pointer;">+ Add item</div>`;
+       html += `</div>`; // end padding wrapper
+       c.innerHTML = html;
+    }
+
+    function timeSince(dateStr) {
+       const ms = Date.now() - new Date(dateStr).getTime();
+       const days = Math.floor(ms / (1000*60*60*24));
+       if (days === 0) return 'Today';
+       if (days === 1) return 'Yesterday';
+       return days + ' days ago';
+    }
+
+    function toggleWardrobeCat(header) {
+       const items = header.nextElementSibling;
+       const arrow = header.querySelector('span:last-child');
+       if (items.style.display === 'none') {
+          items.style.display = 'block';
+          header.style.borderRadius = '14px 14px 0 0';
+          arrow.innerText = '▲';
+       } else {
+          items.style.display = 'none';
+          header.style.borderRadius = '14px';
+          arrow.innerText = '▼';
+       }
+    }
+
+    function capitalize(str) {
+       return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    let editingItemId = null;
+
+    function openAddItemModal() {
+       editingItemId = null;
+       document.getElementById('add-modal-title').innerText = 'Add Clothing';
+       document.getElementById('delete-item-btn').style.display = 'none';
+       document.getElementById('add-name').value = '';
+       document.getElementById('add-category').value = 'tshirt';
+       document.getElementById('add-color').value = 'white';
+       document.getElementById('add-temp-min').value = '10';
+       document.getElementById('add-temp-max').value = '30';
+       document.querySelectorAll('.add-formality-cb').forEach(cb => cb.checked = false);
+       document.querySelectorAll('.add-style-cb').forEach(cb => cb.checked = false);
+       document.getElementById('add-item-modal').style.display = 'block';
+    }
+
+    function openEditItemModal(id, event) {
+       event.stopPropagation();
+       const item = wardrobeItems.find(i => i.id === id);
+       if (!item) return;
+       editingItemId = id;
+       document.getElementById('add-modal-title').innerText = 'Edit Clothing';
+       document.getElementById('delete-item-btn').style.display = 'block';
+       document.getElementById('add-name').value = item.name;
+       document.getElementById('add-category').value = item.category;
+       document.getElementById('add-color').value = item.color_family;
+       document.getElementById('add-temp-min').value = item.temperatureMin;
+       document.getElementById('add-temp-max').value = item.temperatureMax;
+       
+       document.querySelectorAll('.add-formality-cb').forEach(cb => {
+          cb.checked = item.formality.includes(parseInt(cb.value));
+       });
+       document.querySelectorAll('.add-style-cb').forEach(cb => {
+          cb.checked = item.style_tags.includes(cb.value);
+       });
+       
+       document.getElementById('add-item-modal').style.display = 'block';
+    }
+
+    function deleteEditingItem() {
+       if (!editingItemId) return;
+       if (!confirm('Are you sure you want to delete this item?')) return;
+       const idx = wardrobeItems.findIndex(i => i.id === editingItemId);
+       if (idx > -1) {
+          wardrobeItems.splice(idx, 1);
+          localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+       }
+       document.getElementById('add-item-modal').style.display = 'none';
+       renderWardrobeTab();
+    }
+
+    function saveNewItem() {
+       const name = document.getElementById('add-name').value.trim();
+       if (!name) { alert('Please enter a name.'); return; }
+       
+       const category = document.getElementById('add-category').value;
+       const color = document.getElementById('add-color').value;
+       const tempMin = parseInt(document.getElementById('add-temp-min').value) || 10;
+       const tempMax = parseInt(document.getElementById('add-temp-max').value) || 30;
+       
+       const formality = [];
+       document.querySelectorAll('.add-formality-cb:checked').forEach(cb => formality.push(parseInt(cb.value)));
+       if (formality.length === 0) { alert('Please select at least one formality level.'); return; }
+       
+       const styleTags = [];
+       document.querySelectorAll('.add-style-cb:checked').forEach(cb => styleTags.push(cb.value));
+       if (styleTags.length === 0) { alert('Please select at least one style tag.'); return; }
+       
+       if (editingItemId) {
+          const item = wardrobeItems.find(i => i.id === editingItemId);
+          if (item) {
+             item.name = capitalize(name);
+             item.category = category;
+             item.color_family = color;
+             item.formality = formality;
+             item.style_tags = styleTags;
+             item.temperatureMin = tempMin;
+             item.temperatureMax = tempMax;
+          }
+       } else {
+          const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 30) + '_' + Date.now().toString(36);
+          const newItem = {
+             id: id,
+             name: capitalize(name),
+             category: category,
+             color_family: color,
+             formality: formality,
+             style_tags: styleTags,
+             temperatureMin: tempMin,
+             temperatureMax: tempMax,
+             last_worn: null,
+             times_worn: 0,
+             is_dirty: false,
+             photo_id: null
+          };
+          wardrobeItems.push(newItem);
+       }
+       
+       localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+       document.getElementById('add-item-modal').style.display = 'none';
+       renderWardrobeTab();
+    }
+
+    // ==========================================
+    // 7. LAUNDRY & HISTORY TABS
+    // ==========================================
+    async function renderLaundryTab() {
+       const c = document.getElementById('tab-laundry');
+       const dirtyItems = wardrobeItems.filter(i => i.is_dirty);
+       const recentClean = wardrobeItems.filter(i => !i.is_dirty && i.last_worn && i.wears_since_clean > 0).sort((a,b) => new Date(b.last_worn) - new Date(a.last_worn)).slice(0, 12);
+       
+       let html = `<div class="section-label">Laundry</div>`;
+       html += `<h1>What needs washing?</h1>`;
+       html += `<p class="subtitle">Dirty items are excluded until marked clean again.</p>`;
+
+       if (dirtyItems.length > 0) {
+          html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                     <div style="font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em;">Dirty 🧺</div>
+                     <div onclick="washAll()" style="font-size: 10px; color: var(--gold); background: rgba(201,151,58,0.15); padding: 4px 10px; border-radius: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;">Wash All</div>
+                   </div>`;
+          for (let item of dirtyItems) {
+             const dotColor = getDotColor(item);
+             const lastWorn = item.last_worn ? timeSince(item.last_worn) : '';
+             html += `
+                <div onclick="markClean('${item.id}')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 8px; background: rgba(201,151,58,0.06); border-radius: 12px; border: 1px solid rgba(201,151,58,0.18); cursor: pointer;">
+                   <div style="display: flex; gap: 10px; align-items: center;">
+                      <div style="width: 9px; height: 9px; border-radius: 50%; background: ${dotColor}; border: 1px solid rgba(255,255,255,0.2);"></div>
+                      <div>
+                         <div style="font-size: 13px; color: var(--text-light);">${item.name}</div>
+                         <div style="font-size: 10px; color: #666;">Worn ${lastWorn}</div>
+                      </div>
+                   </div>
+                   <div style="display: flex; gap: 8px; align-items: center;">
+                       <div style="font-size: 10px; color: var(--gold); background: rgba(201,151,58,0.06); border: 1px solid rgba(201,151,58,0.18); padding: 4px 8px; border-radius: 12px; font-variant-numeric: tabular-nums;">
+                           ${item.wears_since_clean || 0}/${getMaxWears(item) > 1000 ? '∞' : getMaxWears(item)} wears
+                       </div>
+                       <div style="font-size: 10px; padding: 4px 10px; border-radius: 20px; background: rgba(201,151,58,0.15); color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em;">Dirty</div>
+                   </div>
+                </div>
+             `;
+          }
+       } else {
+          html += `<p style="color: var(--text-muted);">Nothing in the laundry!</p>`;
+       }
+
+       if (recentClean.length > 0) {
+          html += `<div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; margin-top: 18px;">Recently worn — In Use</div>`;
+          for (let item of recentClean) {
+             const dotColor = getDotColor(item);
+             const lastWorn = item.last_worn ? timeSince(item.last_worn) : '';
+             html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 8px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border);">
+                   <div style="display: flex; gap: 10px; align-items: center;">
+                      <div style="width: 9px; height: 9px; border-radius: 50%; background: ${dotColor}; border: 1px solid rgba(255,255,255,0.15);"></div>
+                      <div>
+                         <div style="font-size: 13px; color: #ccc;">${item.name}</div>
+                         <div style="font-size: 10px; color: var(--text-muted);">Worn ${lastWorn}</div>
+                      </div>
+                   </div>
+                   <div style="display: flex; gap: 8px; align-items: center;">
+                       <div style="font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 12px; font-variant-numeric: tabular-nums;">
+                           ${item.wears_since_clean || 0}/${getMaxWears(item) > 1000 ? '∞' : getMaxWears(item)} wears
+                       </div>
+                       <div onclick="markClean('${item.id}')" style="font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: #fff; cursor: pointer;" title="Mark as washed">✨ Washed</div>
+                       <div onclick="markDirty('${item.id}')" style="font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(201,151,58,0.15); color: var(--gold); cursor: pointer;" title="Move to laundry basket">🧺 Dirty</div>
+                   </div>
+                </div>
+             `;
+          }
+       }
+       c.innerHTML = html;
+    }
+    function markClean(id) {
+       const item = wardrobeItems.find(i => i.id === id);
+       if (item) {
+          item.is_dirty = false;
+          item.wears_since_clean = 0;
+          localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+          renderLaundryTab();
+       }
+    }
+    function markDirty(id) {
+       const item = wardrobeItems.find(i => i.id === id);
+       if (item) {
+          item.is_dirty = true;
+          item.wears_since_clean = getMaxWears(item);
+          localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+          renderLaundryTab();
+       }
+    }
+    function washAll() {
+       wardrobeItems.forEach(i => {
+           i.is_dirty = false;
+           i.wears_since_clean = 0;
+       });
+       localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+       renderLaundryTab();
+    }
+
+    async function renderHistoryTab() {
+       const c = document.getElementById('tab-history');
+       let html = `<div class="section-label">Wear History</div>`;
+       html += `<h1>This week</h1>`;
+       
+       if (appState.history.length === 0) {
+          html += '<p style="color: var(--text-muted); margin-top: 20px;">No history yet.</p>';
+       } else {
+          for (let i = 0; i < appState.history.length; i++) {
+             const h = appState.history[i];
+             const dateStr = new Date(h.date).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+             
+             const catLabels = { bottom: 'Bottoms', tshirt: 'T-Shirts', longsleeve: 'Long Sleeves', shirt: 'Shirts', polo: 'Polos', hoodie: 'Hoodies', sweater: 'Sweaters', outer: 'Outerwear', shoes: 'Shoes', cap: 'Caps', suit: 'Suit' };
+             const historyCats = {};
+             for (let id of h.items) {
+                 const item = wardrobeItems.find(it => it.id === id);
+                 if (item) {
+                     const lbl = catLabels[item.category] || item.category;
+                     if (!historyCats[lbl]) historyCats[lbl] = [];
+                     historyCats[lbl].push(item);
+                 }
+             }
+             
+             let itemsHtml = '';
+             for (let [cat, items] of Object.entries(historyCats)) {
+                 itemsHtml += `<div style="font-size: 10px; color: var(--gold); margin-top: 8px; margin-bottom: 4px;">${cat}</div>`;
+                 for (let item of items) {
+                    const dotColor = getDotColor(item);
+                    itemsHtml += `
+                       <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; margin-bottom: 6px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                          <div style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; flex-shrink: 0;"></div>
+                          <span style="font-size: 12px; color: #ccc;">${item.name}</span>
+                       </div>
+                    `;
+                 }
+             }
+             
+             html += `
+                <div style="padding: 14px 16px; margin-bottom: 10px; background: var(--surface); border-radius: 14px; border: 1px solid var(--border);">
+                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                      <div style="font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em;">${dateStr}</div>
+                      <div style="display: flex; gap: 8px;">
+                          <div onclick="unlogOutfit(${i})" style="font-size: 10px; color: #ccc; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; cursor: pointer; text-transform: uppercase;">Un-log</div>
+                          <div onclick="repeatOutfit(${i})" style="font-size: 10px; color: var(--gold); background: rgba(201,151,58,0.15); padding: 4px 10px; border-radius: 20px; cursor: pointer; text-transform: uppercase;">Repeat</div>
+                      </div>
+                   </div>
+                   <div>${itemsHtml}</div>
+                </div>
+             `;
+          }
+       }
+
+       html += `<div onclick="openManualLogModal()" style="padding: 13px 16px; margin-top: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(201,151,58,0.2); text-align: center; font-size: 13px; color: var(--gold); cursor: pointer;">+ Log past outfit</div>`;
+       html += '<div style="height: 60px;"></div>'; // padding for scroll
+       c.innerHTML = html;
+    }
+    
+    function unlogOutfit(index) {
+        if (!confirm('Are you sure you want to remove this outfit from history?')) return;
+        const h = appState.history[index];
+        if (!h) return;
+        
+        for (let id of h.items) {
+           const item = wardrobeItems.find(i => i.id === id);
+           if (item) {
+               if (item.times_worn > 0) item.times_worn -= 1;
+               if (item.wears_since_clean > 0) item.wears_since_clean -= 1;
+               if (item.wears_since_clean < getMaxWears(item)) item.is_dirty = false;
+           }
+        }
+        localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+        
+        appState.history.splice(index, 1);
+        localStorage.setItem('wardrobe_history', JSON.stringify(appState.history));
+        
+        renderHistoryTab();
+        renderWardrobeTab();
+    }
+
+    function repeatOutfit(index) {
+       const h = appState.history[index];
+       if (!h) return;
+       const today = new Date().toISOString().split('T')[0];
+       
+       const historyItem = {
+           id: 'log_' + Date.now().toString(36),
+           date: today,
+           items: h.items
+       };
+       appState.history.unshift(historyItem);
+       localStorage.setItem('wardrobe_history', JSON.stringify(appState.history));
+
+       for (let id of h.items) {
+           const item = wardrobeItems.find(i => i.id === id);
+           if (item) {
+               item.last_worn = new Date().toISOString();
+               item.times_worn += 1;
+               item.wears_since_clean = (item.wears_since_clean || 0) + 1;
+               if (item.wears_since_clean >= getMaxWears(item)) item.is_dirty = true;
+           }
+       }
+       localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+       
+       renderHistoryTab();
+       renderWardrobeTab();
+       renderLaundryTab();
+       renderStatsTab();
+       alert('Outfit repeated and logged for today!');
+    }
+
+    // ==========================================
+    // 8. MANUAL LOG & WARDROBE DIRTY TOGGLE
+    // ==========================================
+    function toggleDirtyFromWardrobe(id, event) {
+       event.stopPropagation();
+       const item = wardrobeItems.find(i => i.id === id);
+       if (item) {
+          item.is_dirty = !item.is_dirty;
+          if (item.is_dirty) item.wears_since_clean = getMaxWears(item);
+          else item.wears_since_clean = 0;
+          localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+          renderWardrobeTab();
+       }
+    }
+
+    let manualLogSelected = new Set();
+
+    function openManualLogModal() {
+       manualLogSelected = new Set();
+       const modal = document.getElementById('manual-log-modal');
+       modal.style.display = 'block';
+       renderManualLogItems();
+    }
+
+    function renderManualLogItems() {
+       const c = document.getElementById('manual-log-items');
+       const catLabels = { bottom: 'Bottoms', tshirt: 'T-Shirts', longsleeve: 'Long Sleeves', shirt: 'Shirts', polo: 'Polos', hoodie: 'Hoodies', sweater: 'Sweaters', outer: 'Outerwear', shoes: 'Shoes', cap: 'Caps', suit: 'Suit' };
+       const categories = {};
+       for (let item of wardrobeItems) {
+          const lbl = catLabels[item.category] || item.category;
+          if (!categories[lbl]) categories[lbl] = [];
+          categories[lbl].push(item);
+       }
+       let html = '';
+       for (let [cat, items] of Object.entries(categories)) {
+          items.sort((a, b) => {
+             const oa = colorOrder[a.color_family] || 99;
+             const ob = colorOrder[b.color_family] || 99;
+             if (oa !== ob) return oa - ob;
+             return a.name.localeCompare(b.name);
+          });
+          html += `<div style="font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 14px; margin-bottom: 6px;">${cat}</div>`;
+          for (let item of items) {
+             const sel = manualLogSelected.has(item.id);
+             const dotColor = getDotColor(item);
+             html += `
+                <div onclick="toggleManualLogItem('${item.id}')" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; margin-bottom: 4px; border-radius: 10px; cursor: pointer; background: ${sel ? 'rgba(201,151,58,0.08)' : 'rgba(255,255,255,0.02)'}; border: 1px solid ${sel ? 'rgba(201,151,58,0.25)' : 'rgba(255,255,255,0.05)'};">
+                   <div style="display: flex; gap: 8px; align-items: center;">
+                      <div style="width: 18px; height: 18px; border-radius: 50%; background: ${dotColor}; border: 1px solid rgba(255,255,255,0.1);"></div>
+                      <span style="font-size: 13px; color: ${sel ? 'var(--gold)' : '#ccc'};">${capitalize(item.name)}</span>
+                   </div>
+                   <div style="width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid ${sel ? 'var(--gold)' : 'rgba(255,255,255,0.15)'}; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold);">${sel ? '\u2713' : ''}</div>
+                </div>`;
+          }
+       }
+       c.innerHTML = html;
+    }
+
+    function toggleManualLogItem(id) {
+       if (manualLogSelected.has(id)) manualLogSelected.delete(id);
+       else manualLogSelected.add(id);
+       renderManualLogItems();
+    }
+
+    function saveManualLog() {
+       if (manualLogSelected.size === 0) { alert('Select at least one item.'); return; }
+       const dateVal = document.getElementById('manual-log-date').value;
+       let date;
+       if (dateVal === 'today') date = new Date();
+       else if (dateVal === 'yesterday') { date = new Date(); date.setDate(date.getDate() - 1); }
+       else date = new Date(dateVal);
+
+       const items = Array.from(manualLogSelected);
+       const historyItem = { date: date.toISOString(), items: items };
+       appState.history.unshift(historyItem);
+       localStorage.setItem('wardrobe_history', JSON.stringify(appState.history));
+
+       items.forEach(id => {
+          const wItem = wardrobeItems.find(i => i.id === id);
+          if (wItem) {
+             wItem.last_worn = date.toISOString();
+             wItem.times_worn += 1;
+             wItem.wears_since_clean = (wItem.wears_since_clean || 0) + 1;
+             if (wItem.wears_since_clean >= getMaxWears(wItem)) {
+                 wItem.is_dirty = true;
+             }
+          }
+       });
+       localStorage.setItem('wardrobe_data', JSON.stringify(wardrobeItems));
+
+       document.getElementById('manual-log-modal').style.display = 'none';
+       renderHistoryTab();
+       renderWardrobeTab();
+       renderLaundryTab();
+       renderStatsTab();
+    }
+
+    // ==========================================
+    // 9. STATS
+    // ==========================================
+    async function renderStatsTab() {
+       const c = document.getElementById('tab-stats');
+       let html = `<div class="section-label">Analytics</div>`;
+       html += `<h1>Wardrobe Stats</h1>`;
+
+       // 1. Wear Summary (Last 7 Days)
+       const last7 = Date.now() - (7 * 24 * 60 * 60 * 1000);
+       const historyLast7 = appState.history.filter(h => new Date(h.date).getTime() > last7);
+       let itemsWornLast7 = 0;
+       historyLast7.forEach(h => itemsWornLast7 += h.items.length);
+       
+       html += `<div style="padding: 16px; margin-top: 20px; background: var(--surface); border-radius: 14px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Last 7 Days</div>
+                    <div style="font-size: 24px; color: var(--text); font-family: var(--font-serif);">${historyLast7.length} <span style="font-size: 12px; color: var(--text-muted); font-family: var(--font-sans);">outfits logged</span></div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Items Worn</div>
+                    <div style="font-size: 24px; color: var(--text); font-family: var(--font-serif);">${itemsWornLast7}</div>
+                  </div>
+                </div>`;
+
+       // 2. Most Worn Items
+       const mostWorn = wardrobeItems.filter(i => i.times_worn > 0).sort((a,b) => b.times_worn - a.times_worn).slice(0, 5);
+       if (mostWorn.length > 0) {
+          html += `<div style="font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 24px; margin-bottom: 12px;">Most Worn All-Time</div>`;
+          for (let item of mostWorn) {
+             const dotColor = getDotColor(item);
+             html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 8px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                   <div style="display: flex; gap: 10px; align-items: center;">
+                      <div style="width: 14px; height: 14px; border-radius: 50%; background: ${dotColor}; border: 1px solid rgba(255,255,255,0.1);"></div>
+                      <div style="font-size: 13px; color: #ccc;">${capitalize(item.name)}</div>
+                   </div>
+                   <div style="font-size: 11px; color: var(--gold);"><span style="font-size: 15px; font-weight: 600;">${item.times_worn}</span>x</div>
+                </div>
+             `;
+          }
+       }
+
+       // 3. Unworn Items (30 Days)
+       const last30 = Date.now() - (30 * 24 * 60 * 60 * 1000);
+       const unwornItems = wardrobeItems.filter(i => (!i.last_worn || new Date(i.last_worn).getTime() < last30) && !i.is_dirty);
+       if (unwornItems.length > 0) {
+          html += `<div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 24px; margin-bottom: 12px;">Unworn in 30 Days (${unwornItems.length} items)</div>`;
+          
+          const catLabels = { bottom: 'Bottoms', tshirt: 'T-Shirts', longsleeve: 'Long Sleeves', shirt: 'Shirts', polo: 'Polos', hoodie: 'Hoodies', sweater: 'Sweaters', outer: 'Outerwear', shoes: 'Shoes', cap: 'Caps', suit: 'Suit' };
+          const unwornCats = {};
+          unwornItems.forEach(i => {
+              const lbl = catLabels[i.category] || i.category;
+              if (!unwornCats[lbl]) unwornCats[lbl] = [];
+              unwornCats[lbl].push(i);
+          });
+          
+          for (let [cat, items] of Object.entries(unwornCats)) {
+             html += `<div style="font-size: 10px; color: var(--gold); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-top: 12px; margin-bottom: 8px;">${cat}</div>`;
+             html += `<div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+             for (let item of items) {
+                const dotColor = getDotColor(item);
+                html += `
+                   <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                      <div style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor};"></div>
+                      <span style="font-size: 11px; color: var(--text-muted);">${capitalize(item.name)}</span>
+                   </div>
+                `;
+             }
+             html += `</div>`;
+          }
+       }
+
+       // 4. Color Combos
+       const rbCombos = {};
+       appState.history.forEach(h => {
+          const colors = h.items.map(id => {
+             const it = wardrobeItems.find(i => i.id === id);
+             return it ? it.color_family : null;
+          }).filter(c => c);
+          colors.sort();
+          if (colors.length >= 2) {
+             const key = colors.join(' + ');
+             rbCombos[key] = (rbCombos[key] || 0) + 1;
+          }
+       });
+       const topCombos = Object.entries(rbCombos).sort((a,b) => b[1] - a[1]).slice(0, 3);
+       if (topCombos.length > 0) {
+          html += `<div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 24px; margin-bottom: 12px;">Top Color Combo</div>`;
+          for (let [combo, count] of topCombos) {
+             html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: #aaa;">
+                         <span>${combo.split(' + ').map(c => capitalize(c)).join(' <span style="color:#555;">&</span> ')}</span>
+                         <span style="font-size: 10px; color: var(--gold);">${count} outfits</span>
+                      </div>`;
+          }
+       }
+       
+       // 5. Wardrobe Color DNA
+       const colorCounts = {};
+       wardrobeItems.forEach(i => {
+           if (!colorCounts[i.color_family]) colorCounts[i.color_family] = 0;
+           colorCounts[i.color_family]++;
+       });
+       const totalColors = wardrobeItems.length;
+       const sortedColors = Object.entries(colorCounts).sort((a,b) => b[1] - a[1]);
+       
+       if (totalColors > 0) {
+           html += `<div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 24px; margin-bottom: 12px;">Wardrobe DNA</div>`;
+           
+           // Render stacked bar
+           html += `<div style="display: flex; height: 12px; width: 100%; border-radius: 6px; overflow: hidden; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.08);">`;
+           for (let [color, count] of sortedColors) {
+               const widthPct = (count / totalColors) * 100;
+               const dotColor = getDotColor({ color_family: color });
+               html += `<div style="width: ${widthPct}%; background: ${dotColor};" title="${capitalize(color)}: ${count} items"></div>`;
+           }
+           html += `</div>`;
+
+           // Render Advisor Suggestion
+           const top3 = sortedColors.slice(0, 3).map(c => capitalize(c[0])).join(', ');
+           const missingBasics = ['white', 'black', 'grey', 'navy'].filter(b => !colorCounts[b]);
+           
+           let advisorText = '';
+           if (sortedColors[0][1] / totalColors > 0.5) {
+               advisorText = `Your wardrobe is heavily dominated by <strong style="color:var(--text);">${capitalize(sortedColors[0][0])}</strong> (${Math.round((sortedColors[0][1] / totalColors) * 100)}%). Consider injecting some accent colors to break up the monochrome look!`;
+           } else if (missingBasics.length > 0) {
+               advisorText = `You're missing some crucial foundational colors: <strong style="color:var(--text);">${missingBasics.map(capitalize).join(', ')}</strong>. Consider acquiring these to exponentially increase your mix-and-match combinations.`;
+           } else if (Object.keys(colorCounts).length > 8) {
+               advisorText = `You have a beautifully vibrant and diverse color palette! Just make sure you have enough foundational neutrals to anchor those louder statement pieces.`;
+           } else {
+               advisorText = `Your closet shows a balanced and cohesive color story, primarily leaning heavily on ${top3}.`;
+           }
+
+           html += `
+              <div style="background: rgba(201,151,58,0.05); border: 1px solid rgba(201,151,58,0.15); border-radius: 12px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px;">
+                 <div style="font-size: 16px; margin-top: 2px;">🛍️</div>
+                 <div>
+                    <div style="font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; font-weight: 500;">Style Advisor</div>
+                    <div style="font-size: 13px; color: #ccc; line-height: 1.5;">${advisorText}</div>
+                 </div>
+              </div>
+           `;
+       }
+       
+       html += '<div style="height: 60px;"></div>'; // padding for scroll
+       c.innerHTML = html;
+    }
+
+    // ==========================================
+    // 10. SETTINGS
+    // ==========================================
+    function openSettings() {
+       document.getElementById('set-theme').value = settings.theme || 'light';
+       document.getElementById('set-city').value = settings.city;
+       document.getElementById('set-lat').value = settings.lat;
+       document.getElementById('set-lon').value = settings.lon;
+       document.getElementById('set-key').value = settings.api_key || '';
+       document.getElementById('set-cooldown').value = settings.cooldown;
+       document.getElementById('set-cooldown-val').innerText = settings.cooldown;
+       document.getElementById('settings-modal').style.display = 'block';
+    }
+    function saveSettings() {
+       settings.theme = document.getElementById('set-theme').value;
+       document.documentElement.setAttribute('data-theme', settings.theme);
+       settings.city = document.getElementById('set-city').value;
+       settings.lat = parseFloat(document.getElementById('set-lat').value);
+       settings.lon = parseFloat(document.getElementById('set-lon').value);
+       settings.api_key = document.getElementById('set-key').value;
+       settings.cooldown = parseInt(document.getElementById('set-cooldown').value);
+       localStorage.setItem('wardrobe_settings', JSON.stringify(settings));
+       document.getElementById('settings-modal').style.display = 'none';
+       if (isOnline) fetchWeather(); 
+    }
+    function exportJSON(key) {
+       const data = localStorage.getItem(key);
+       if (!data) return alert('No data to export.');
+       const blob = new Blob([data], { type: 'application/json' });
+       const url = URL.createObjectURL(blob);
+       const a = document.createElement('a');
+       a.href = url;
+       a.download = key + '_' + new Date().toISOString().split('T')[0] + '.json';
+       document.body.appendChild(a);
+       a.click();
+       document.body.removeChild(a);
+    }
+    
+    function importJSONBackup(event) {
+       const file = event.target.files[0];
+       if (!file) return;
+       const reader = new FileReader();
+       reader.onload = e => {
+           try {
+               const data = JSON.parse(e.target.result);
+               if (Array.isArray(data)) {
+                   if (data.length === 0 || data[0].hasOwnProperty('times_worn')) {
+                       localStorage.setItem('wardrobe_data', JSON.stringify(data));
+                       alert('Wardrobe backup imported successfully! The app will now reload.');
+                       location.reload();
+                   } else if (data[0].hasOwnProperty('date') && data[0].hasOwnProperty('items')) {
+                       localStorage.setItem('wardrobe_history', JSON.stringify(data));
+                       alert('History backup imported successfully! The app will now reload.');
+                       location.reload();
+                   } else {
+                       alert('Unrecognized JSON format.');
+                   }
+               } else {
+                   alert('JSON must be an array.');
+               }
+           } catch (err) {
+               alert('Invalid JSON file.');
+           }
+       };
+       reader.readAsText(file);
+    }
+    function clearHistory() {
+       if (confirm("Clear all outfit history?")) {
+          appState.history = [];
+          localStorage.setItem('wardrobe_history', '[]');
+          alert("History cleared.");
+          if (document.getElementById('tab-history').classList.contains('active')) renderHistoryTab();
+       }
+    }
+    function resetApp() {
+       if (confirm("Are you sure? This deletes ALL settings, wardrobe state, history, and photos!")) {
+          localStorage.clear();
+          indexedDB.deleteDatabase('WardrobePhotos');
+          location.reload();
+       }
+    }
+
+    // Startup
+    updateNetworkStatus();
+    // Set date label
+    const now = new Date();
+    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    document.getElementById('date-label').innerText = now.getDate() + ' . ' + monthNames[now.getMonth()];
+    
+    // Set Greeting
+    const h = now.getHours();
+    let greeting = "Good<br>evening.";
+    if (h < 12) greeting = "Good<br>morning.";
+    else if (h < 18) greeting = "Good<br>afternoon.";
+    document.getElementById('v2-greeting').innerHTML = greeting;
+
+    // Register Service Worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => console.log('SW registered'))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
