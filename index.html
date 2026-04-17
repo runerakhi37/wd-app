@@ -81,6 +81,10 @@
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     
+    html {
+      background-color: var(--bg);
+    }
+    
     body {
       margin: 0; padding: 0;
       background: var(--bg-gradient);
@@ -1252,7 +1256,8 @@ The response format MUST BE RAW JSON ONLY (NO markdown backticks block).
             if (data.error) throw new Error(data.error.message);
 
             const jsonStr = data.candidates[0].content.parts[0].text;
-            const parsed = JSON.parse(jsonStr);
+            const cleanStr = jsonStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanStr);
 
             renderGeminiOutfits(parsed);
         } catch (e) {
@@ -1568,6 +1573,21 @@ The response format MUST BE RAW JSON ONLY (NO markdown backticks block).
        'navy': 12, 'purple': 13, 'green': 14, 'dark green': 15, 'olive': 16,
        'brown': 17, 'dark brown': 18, 'grey': 19, 'black': 20
     };
+
+    function getMaxWears(item) {
+        if (!item || !item.category) return 4;
+        const c = item.category;
+        if (c === 'tshirt' || c === 'longsleeve' || c === 'polo') return 4;
+        if (c === 'shirt') return 3;
+        if (c === 'sweater' || c === 'hoodie') return 6;
+        if (c === 'bottom') return 6;
+        if (item.id === 'suit_pants') return 4;
+        if (c === 'outer' || c === 'suit') return 9999;
+        if (c === 'cap' || c === 'shoes') return 9999;
+        return 4;
+    }
+
+    const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 
     function getDotColor(item) {
         const c = item.color_family || '';
